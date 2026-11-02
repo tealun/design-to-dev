@@ -4,17 +4,23 @@
 
 | Input | How to read it | What to extract |
 | --- | --- | --- |
-| Screenshot or exported image | Look at it at full size. Note the canvas width (390 suggests phone, 1440 desktop). Zoom mentally into buttons, cards, inputs. | Pages, regions, components, copy, colors, type sizes, spacing rhythm, icons, which states are shown. |
+| Screenshot or exported image | Look at it at full size. For PNG run `scripts/palette.py <image>`: exact colors by share, plus the likely scale (780 px wide = 2× of a 390pt phone; divide every measured size by the scale). Use `--at x,y` to read one element's color. | Pages, regions, components, copy, exact colors, type sizes, spacing rhythm, icons, which states are shown, and links that lead to pages not in the material. |
 | Figma link | With a Figma MCP server: `get_metadata` for the frame list, `get_screenshot` per frame, `get_variable_defs` for variables and styles, `get_design_context` for exact values of a frame. Without one: ask for exported PNGs of each frame plus a screenshot of the local styles panel. | Same as screenshots, plus exact values and existing variable names. Reuse the file's variable names when they are sensible. |
 | Brand guidelines (PDF, doc, page) | Read the color, typography, logo, voice and do/don't sections. | Fixed values: brand colors, fonts, logo rules, tone of voice. These are usually Fixed. |
 | Claude Design or other generated output | HTML: read the CSS for values and the DOM for structure. Image or text: treat as screenshot or intent. | Structure and values; treat generated choices the designer did not confirm as Indicative. |
 | Plain-text intent | Read for users, jobs, pages, flow, tone. | Pages and flow; every visual decision you make is Indicative. |
+
+Material that is not yours to copy: when the screenshot is another company's product used as reference, keep its layout and interaction ideas but replace its name, logo and distinctive brand assets with placeholders.
+
+Assets: list every logo, icon, photo and illustration you see. Only files the designer supplies are used as-is; everything else becomes a placeholder marked TBD.
 
 When inputs disagree (a screenshot uses a color not in the brand guide), prefer the more authoritative source (brand guide > Figma variables > screenshot > intent), note the conflict, and add it to open questions.
 
 Record what each input contributed. This becomes the “Sources” section of HANDOFF.md.
 
 ## The question round
+
+If links in the design lead to pages you were not given (forgot password, sign up, settings), name them in question 1 and suggest leaving them out of scope.
 
 Ask once, at most five questions, each answerable in a few words and each with a default the designer can accept by saying “ok”. Skip any question the inputs already answer. Write for a designer: no words like route, component tree, state machine, API.
 

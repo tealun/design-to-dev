@@ -25,7 +25,7 @@ No coding and no Node.js needed; the prototype needs only a browser.
 ## How it works
 
 1. **Understand the intent.** Reads all your material, then asks at most five questions (pages, core flow, users and devices, who receives the result, what must match), each with a suggested answer — reply "ok" to accept.
-2. **Extract the design rules.** Tokens from brand guides, Figma variables or screenshots, each with its source and level; values measured from screenshots are marked Indicative.
+2. **Extract the design rules.** Tokens from brand guides, Figma variables or screenshots, each with its source and level; a bundled script reads exact colors and the scale factor from PNG screenshots, and measured sizes are marked Indicative.
 3. **Build the prototype.** Plain HTML/CSS/JS, no build step. The "Prototype tools" button switches pages and states, simulates a failed request, and resets the data.
 4. **Mark every item.** Fixed / Indicative / TBD on the elements; every TBD becomes an open question in the handoff.
 5. **Write HANDOFF.md**, including a Mermaid flow diagram.

@@ -63,6 +63,14 @@ flowchart LR
 | 骨架屏 Skeleton | 加载状态 | 动画；减少动态效果时静止 | 【示意】 | |
 | 提示条 Toast | 保存成功/失败 | 默认（墨色）、错误（红色） | 【示意】 | 顶部居中，约 2.5 秒消失 |
 
+素材清单 Assets：
+
+| 素材 Asset | 位置 Where | 状态 Status | 等级 Level |
+| --- | --- | --- | --- |
+| 书籍封面 Book covers | 书架、详情 | 占位：品牌色块 + 书名首字 | 【示意】 |
+| 空书架插图 Empty-shelf illustration | 书架空状态 | 占位：浅琥珀圆形 | 【待定】 |
+| 品牌字体 Noto Serif SC | 标题 | 未打包，回退系统宋体 | 【待定】（问题 6） |
+
 ## 4. 交互细节 Interactions
 
 | 位置 Where | 触发 Trigger | 结果 Result | 等级 Level |

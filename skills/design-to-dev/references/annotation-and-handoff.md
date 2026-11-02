@@ -5,8 +5,8 @@
 | Signal | Level |
 | --- | --- |
 | The designer said it must match; it is in the brand guide; it is a Figma variable or component the team owns | Fixed 【确定】 |
-| Visible in the design but measured, approximated, or a reasonable variant you derived | Indicative 【示意】 |
-| You had to invent behavior, copy or data rules; inputs conflict; the font or asset is unavailable; the design does not cover it | TBD 【待定】 |
+| Visible in the design but measured, approximated, or a reasonable variant you derived. This includes font weight, size and spacing measured from an image, in tokens and in element marks alike | Indicative 【示意】 |
+| You had to invent behavior, copy or data rules; inputs conflict; the font or asset is unavailable; the design does not cover it; a stub page or a `data-out` link | TBD 【待定】 |
 
 Ask the designer to confirm only the items that would change a lot of work if wrong (core layout, brand color, main flow). Everything else follows the table.
 
@@ -28,7 +28,7 @@ Start from [../templates/HANDOFF.md](../templates/HANDOFF.md) and replace every 
 
 - Pages: one row per `Proto.page()`, with its route in backticks and the states it supports.
 - Flow: a Mermaid `flowchart` of the core flow and important branches (error, empty), plus numbered steps.
-- Components: each reusable piece, its variants and states.
+- Components: each reusable piece, its variants and states; then the asset list (logos, icons, images: supplied file or placeholder).
 - Interactions: triggers and results, including validation, loading, error and retry.
 - Tokens: a short summary; the files hold the details.
 - Open questions: every TBD, each with a suggested answer and an owner.

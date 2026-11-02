@@ -5,7 +5,7 @@ license: MIT
 compatibility: "Needs file read/write. Reading images needs a vision-capable model; Figma links need a Figma MCP server or exported screenshots. The prototype needs only a browser; check_output.py needs Python 3."
 metadata:
   author: Tealun
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # design-to-dev
@@ -59,22 +59,24 @@ If the user says “you decide” or skips a question, take the default and reco
 
 ### 2. Extract the design rules
 
-Build tokens for color, typography (family, size scale, weight, line height), spacing, radius, shadow, and motion if visible; add component state colors (hover, active, focus, disabled, error, success). Write `design-tokens/tokens.css` with a `level · source` comment on each token, then generate the matching `tokens.json` with `python3 <skill-dir>/scripts/tokens_json.py <output>/design-tokens/tokens.css`. Every token has a level and a source. Values read off a screenshot are estimates: snap them to a consistent scale, mark them Indicative unless the user or a spec file confirms them, and say so.
+Build tokens for color, typography (family, size scale, weight, line height), spacing, radius, shadow, and motion if visible; add component state colors (hover, active, focus, disabled, error, success). Write `design-tokens/tokens.css` with a `level · source` comment on each token, then generate the matching `tokens.json` with `python3 <skill-dir>/scripts/tokens_json.py <output>/design-tokens/tokens.css`. Every token has a level and a source. For PNG screenshots, run `python3 <skill-dir>/scripts/palette.py <image>` first: it gives the exact colors and the scale factor (a 780 px wide phone shot is 2×, so divide measured sizes by 2). Exact colors sampled from the designer's own final design may be Fixed; sizes measured from an image are Indicative, snapped to a consistent scale.
 
 ### 3. Build the clickable prototype
 
-Copy the templates into `prototype/`, then write `data.js` (fake data) and `pages.js` (one entry per page). Requirements:
+Copy the templates into `prototype/`, adjust the base components in `styles.css` to the design (weights, radius, borders; the template's defaults are not the design), then write `data.js` (fake data) and `pages.js` (one entry per page). Requirements:
 
-- Every page in scope exists and every step of the core flow is clickable from the first page.
+- Every page in scope exists and every step of the core flow is clickable from the first page. If the flow ends on a page that was not designed (after sign-in, after checkout), add a minimal stub page marked TBD instead of inventing a design.
+- Links to pages outside the scope get `data-out`: the kit shows a “not in this prototype” toast. List them as open questions.
+- Logos, icons, photos and illustrations that are not supplied as files become labelled placeholders marked TBD and go in the HANDOFF asset list.
 - Styles use token variables: no raw colors anywhere outside tokens, and sizes from tokens wherever the design defines them.
-- Text meets WCAG AA contrast against its real background (4.5:1, or 3:1 for large text); check text on brand and accent colors.
+- Text meets WCAG AA contrast against its real background (4.5:1, or 3:1 for large text); check text on brand and accent colors with `palette.py --contrast <text> <background>`, never by estimate.
 - Every page that shows data supports the `default`, `empty`, `loading` and `error` states; forms show validation errors; buttons and links have hover, focus and disabled styles.
 - Saving uses `Proto.fake()` so the loading and error paths can be demonstrated; no backend, no network calls.
 - It runs by double-clicking `index.html`: no build step, no server, no CDN script.
 
 ### 4. Mark what is fixed, indicative and TBD
 
-Put `data-spec` and `data-spec-note` on the elements that matter: key layouts, components, copy, and anything uncertain. Behavior you had to invent (sorting, limits, validation rules, what happens after an error) is TBD unless the user confirmed it. Every TBD item must reappear in the HANDOFF open questions.
+Put `data-spec` and `data-spec-note` on the elements that matter: key layouts, components, copy, and anything uncertain. Behavior you had to invent (sorting, limits, validation rules, what happens after an error) is TBD unless the user confirmed it. A visual property you measured from an image (weight, size, spacing) is Indicative, not Fixed, unless a spec or the designer confirms it. Every TBD item must reappear in the HANDOFF open questions.
 
 ### 5. Write HANDOFF.md
 
@@ -88,7 +90,7 @@ Run the checker and fix every error it reports before closing:
 python3 <skill-dir>/scripts/check_output.py <output>
 ```
 
-If you can drive a browser, open `prototype/index.html`, walk the core flow and each state, and look at the screenshots yourself; a page that renders blank or unstyled is a failure even when the checker passes.
+If you can drive a browser, open `prototype/index.html` at the design's width, walk the core flow and each state, and put each screenshot side by side with its source design. Fix visible differences in anything marked Fixed (color, weight, size, order); a page that renders blank or unstyled is a failure even when the checker passes.
 
 Then close in the chosen mode:
 
@@ -101,6 +103,7 @@ Close with plain-language results for the designer: how to open the prototype, w
 
 - Do not invent brand facts. If a color, font or rule is not in the inputs, choose a sensible value, mark it Indicative or TBD, and list it.
 - Never ship a page the designer has not asked for just to look complete; list suggested extra pages as open questions instead.
-- Keep real or personal data out of fake data; use obviously fictional names.
+- Keep real or personal data out of fake data; use obviously fictional names. For sign-in or payment flows, use a fictional demo account, write it in HANDOFF section 0, and never send any input over the network.
+- If the input is someone else's product (a reference, a competitor, a public site), do not reproduce its name or logo: use placeholders and say so in HANDOFF.
 - Fonts: use the brand font if it is a free web font or installed system font; otherwise use a system stack and record the real font as TBD.
 - If the designer asks for React, Vue or another stack, read the prototype reference first; keep the same tokens, levels and HANDOFF.

@@ -16,6 +16,7 @@
 1. 双击 `prototype/index.html`，用浏览器打开即可，不需要安装任何东西。Double-click `prototype/index.html`.
 2. 右下角“原型工具”：切换页面和状态（默认、空、加载、报错），打开“标注”（或按 Shift+A）查看【确定】【示意】【待定】，勾选“下次请求失败”演示报错。
 3. 改过假数据后点“重置数据”恢复。
+4. 演示账号 Demo account（登录、支付等流程才需要 only for sign-in or payment flows）：{{demo / demo1234 或删除此行 or delete this line}}
 
 ## 1. 页面清单 Pages
 
@@ -39,6 +40,12 @@ flowchart LR
 | 组件 Component | 出现位置 Used on | 变体与状态 Variants & states | 等级 Level | 说明 Notes |
 | --- | --- | --- | --- | --- |
 | 按钮 Button | {{…}} | primary, secondary; hover, focus, disabled, busy | 【确定】 | {{…}} |
+
+素材清单 Assets：
+
+| 素材 Asset | 位置 Where | 状态 Status | 等级 Level |
+| --- | --- | --- | --- |
+| {{Logo}} | {{…}} | {{已提供文件 supplied / 占位 placeholder}} | {{【确定】/【待定】}} |
 
 ## 4. 交互细节 Interactions
 

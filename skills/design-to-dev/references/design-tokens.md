@@ -24,7 +24,8 @@ The two files must contain the same set of names: CSS `--color-primary` ↔ JSON
 Every token gets a level (`fixed`, `indicative`, `tbd`) and a source. Defaults:
 
 - From a brand guide or Figma variable: `fixed`.
-- Measured from a screenshot: `indicative`, with “measured from <file>” as source.
+- Exact color sampled with `palette.py` from the designer's own final design: `fixed`, source “sampled from <file>”. From a reference or someone else's product: `indicative`.
+- Size, spacing or weight measured from a screenshot: `indicative`, with “measured from <file>” as source; divide by the scale factor first.
 - Chosen by you to fill a gap: `indicative`, source “assumed”.
 - Needed but genuinely unknown (licensed font not available, dark mode colors): `tbd`.
 

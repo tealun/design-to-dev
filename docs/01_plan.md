@@ -1,6 +1,6 @@
 # design-to-dev 规划
 
-状态：M0 规划（待 auditor 审计后进入实现）
+状态：M0–M3 完成，1.1.0 待发布（2026-11-02）
 日期：2026-11-02
 
 ## 1. 理解卡
@@ -52,6 +52,10 @@
 | V2 | WorkBuddy 对单技能包的字段要求与套件包一致 | 沿用 EV-20261102-001 已知规则（第三方整理，待官方证实）；首次上传结果记入台账 | 发布时 |
 | V3 | `claude plugin validate .` 接受本仓库的市场与插件清单 | 命令输出 | M1 |
 | V4 | 原型在 `file://` 下完整可用（路由、状态切换、标注层） | Playwright 截图与点击脚本输出 | M1 |
+| V5 | `npx skills add tealun/design-to-dev` 能发现 `skills/design-to-dev/` | 本会话安装外部代码被拦截，未运行；维护者本机执行一次并记录 | 发布时，维护者 |
+| V6 | WorkBuddy 接受包内 `.js` / `.html` / `.css` 模板文件和 `category: design` | 套件包只含 `.md` / `.py`，无先例；首次上传结果记入台账 | 发布时 |
+
+已验证：V3 `claude plugin validate .` 通过；V4 Playwright 走通 Readlog 三条流程与实测原型，无控制台报错。
 
 ## 6. 阶段门槛
 
@@ -85,3 +89,5 @@
 ## 9. 变更记录
 
 - 2026-11-02 用户纠正：技能不得放进 Tealun-Skills，改为独立仓库 `tealun/design-to-dev`。已把未提交的 10 个文件迁入本仓库并清理 Tealun-Skills 工作区；D1、D3、D11、D12、D13 随之更新。
+
+- 2026-11-02 M3 实测（`docs/02_field-test.md`）：7 项发现全部落到 1.1.0；发布前审计（auditor，standard）无 P0/P1，P2 `palette.py --at` 越界静默取错色，已修复并验证。

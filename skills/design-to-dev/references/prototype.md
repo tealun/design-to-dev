@@ -42,7 +42,14 @@ For every page:
 - Escape any text that came from the user or the store with `Proto.esc()`.
 - Use semantic elements: `button` for actions, `a href="#/…"` for navigation, `label` for inputs.
 - No raw colors in `styles.css` or `pages.js`; read them from tokens. Prefer tokens for sizes too.
-- Text contrast at least 4.5:1 (3:1 for text 24px+ or 19px+ bold) against its actual background, including text on brand or accent colors; record the main ratios in HANDOFF section 5. A white label on a light brand color (yellow, amber, light green) usually fails.
+- Text contrast at least 4.5:1 (3:1 for text 24px+ or 19px+ bold) against its actual background, including text on brand or accent colors. Compute it with `python3 <skill-dir>/scripts/palette.py --contrast <text> <background>` and copy the printed ratios into HANDOFF section 5; estimates were wrong in testing. A white label on a light brand color (yellow, amber, light green) usually fails.
+
+## Flow edges, assets and demo accounts
+
+- **Flow ends outside the design:** add one stub page (for example `/signed-in`) that says the flow ended, mark it `data-spec="tbd"`, and list it in the HANDOFF page table with level TBD. Do not design it.
+- **Links to pages not in scope:** `<a href="#" data-out>Forgot password?</a>`. proto-kit shows a “not in this prototype” toast. Each becomes an open question.
+- **Assets not supplied:** a neutral placeholder (initial in a circle, grey box with the asset name), marked TBD, listed in HANDOFF section 3 under Assets.
+- **Sign-in, payment and other sensitive forms:** accept only a fictional demo account from `data.js` (e.g. demo / demo1234), state it in HANDOFF section 0, and never send input anywhere.
 
 ## Fake data
 
@@ -54,4 +61,4 @@ If the designer asks for React/Vue/Svelte or the handoff team requires one, use 
 
 ## Verify in a browser
 
-If a browser tool is available (Playwright, Chrome), open `prototype/index.html`, walk the core flow, switch every state, toggle the spec layer, and capture screenshots. Check: no console errors, no unstyled page (tokens path wrong), no dead link, text not overflowing at 390px width.
+If a browser tool is available (Playwright, Chrome), open `prototype/index.html` at the design's width, walk the core flow, switch every state, toggle the spec layer, and capture screenshots. Put each screenshot beside its source design and compare color, font weight, sizes, order and spacing; template defaults (bold buttons, radius) often override the design unnoticed. Also check: no console errors, no unstyled page (tokens path wrong), no dead link, text not overflowing.

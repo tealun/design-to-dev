@@ -8,6 +8,7 @@
  *   - fake data store:   Proto.store (deep copy of window.MOCK, kept in localStorage, "Reset data" restores it)
  *   - spec marks:        elements with data-spec="fixed|indicative|tbd" and data-spec-note="…", shown with Shift+A
  *   - toast:             Proto.toast('Saved')
+ *   - out of scope:      <a href="#" data-out> shows a "not in this prototype" toast instead of navigating
  * Replace routing, store and fake() with your real stack; keep the tokens and the page structure.
  */
 (function () {
@@ -15,9 +16,11 @@
 
   var LABELS = {
     zh: { page: '页面', state: '状态', spec: '标注', fail: '下次请求失败', reset: '重置数据', hide: '收起', show: '原型工具',
-          fixed: '确定', indicative: '示意', tbd: '待定', failed: '请求失败（模拟）', notFound: '页面不存在' },
+          fixed: '确定', indicative: '示意', tbd: '待定', failed: '请求失败（模拟）', notFound: '页面不存在',
+          outOfScope: '不在本原型范围，见交接文档的待定问题' },
     en: { page: 'Page', state: 'State', spec: 'Spec', fail: 'Fail next request', reset: 'Reset data', hide: 'Hide', show: 'Prototype tools',
-          fixed: 'Fixed', indicative: 'Indicative', tbd: 'TBD', failed: 'Request failed (simulated)', notFound: 'Page not found' }
+          fixed: 'Fixed', indicative: 'Indicative', tbd: 'TBD', failed: 'Request failed (simulated)', notFound: 'Page not found',
+          outOfScope: 'Not in this prototype; see HANDOFF open questions' }
   };
 
   /* Kit chrome uses its own fixed styles so it never depends on, or leaks into, the design tokens. */
@@ -131,6 +134,11 @@
       Proto.store = loadStore();
       buildToolbar();
       window.addEventListener('hashchange', render);
+      // Links to pages that were not designed: explain instead of navigating to a dead end.
+      document.addEventListener('click', function (e) {
+        var out = e.target.closest && e.target.closest('#app [data-out]');
+        if (out) { e.preventDefault(); Proto.toast(t('outOfScope')); }
+      });
       window.addEventListener('resize', drawSpecs);
       document.addEventListener('scroll', drawSpecs, true);
       document.addEventListener('keydown', function (e) {
