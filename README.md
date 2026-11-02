@@ -1,0 +1,100 @@
+# design-to-dev
+
+中文 | [English](README.en.md)
+
+把设计稿或产品想法，变成一个**能跑起来的原型**，再连同设计规范和交接文档一起交出去。
+
+design-to-dev 是一个 Agent 技能，给懂设计、不太懂代码的人用。你把截图、Figma 链接、品牌规范、Claude Design 的产出，或者一段文字描述交给 AI，它会问你几个设计师听得懂的问题，然后交回三样东西：
+
+| 产出 | 是什么 |
+| --- | --- |
+| `prototype/` | 双击 `index.html` 就能打开的可交互原型：页面能点，核心流程能走通，用假数据演示悬停、空状态、加载中和报错 |
+| `design-tokens/` | 设计规范：颜色、字体、字号、间距、圆角、阴影、组件状态，`tokens.css`（CSS 变量）和 `tokens.json`（W3C 格式）各一份 |
+| `HANDOFF.md` | 交接文档：页面清单、流程图、组件清单、交互细节、待定问题 |
+
+每个关键元素都标了等级：**【确定】**必须还原，**【示意】**可以调整，**【待定】**需要开发决定。在原型里按 `Shift+A` 就能看到。
+
+## 适合谁
+
+- **UI / UX / 产品设计师**：想让开发拿到的不只是静态图，而是能点、能看到各种状态的东西。
+- **独立创作者、创业者**：有想法、会设计，想先做一个能演示的版本，再决定怎么开发。
+- **接手的开发者**：拿到原型、tokens 和一份写清“哪些必须还原、哪些还没定”的文档。
+
+不需要会写代码，不需要安装 Node.js；原型只要一个浏览器。
+
+## 它怎么工作
+
+1. **理解意图**：读完你的所有材料，一次最多问 5 个问题（页面、核心流程、用户和设备、交给谁、哪些必须还原），每个问题都带建议答案，回“ok”就行。
+2. **提取设计规范**：从品牌规范、Figma 变量或截图里提取 tokens，每一项写明来源和等级；从截图量出来的值会标为【示意】。
+3. **搭建原型**：纯 HTML/CSS/JS，没有构建步骤。右下角“原型工具”可以切换页面和状态、模拟“请求失败”、重置数据。
+4. **逐项标注**：【确定】【示意】【待定】标在元素上；所有【待定】都会进入交接文档的待定问题。
+5. **交接文档**：`HANDOFF.md`，含 Mermaid 流程图。
+6. **两种收尾**：
+   - **A. 交给开发**：文档侧重说清楚，待定问题放在最前面。
+   - **B. 自己继续开发**：额外生成 `PLANNER_BRIEF.md`，可以直接交给 [Tealun Skills](https://github.com/tealun/Tealun-Skills) 的 planner 规划下一步。
+
+交付前，技能会运行自带的检查脚本：两份 tokens 是否一致、页面和文档是否对得上、有没有写死的颜色、标注是否合法、待定项是否都进了文档。
+
+## 安装
+
+### Claude Code（插件市场）
+
+```text
+/plugin marketplace add tealun/design-to-dev
+/plugin install design-to-dev@design-to-dev
+```
+
+### 支持 Agent Skills 标准的工具（Claude Code、Codex、Cursor 等）
+
+```bash
+npx skills add tealun/design-to-dev
+```
+
+或者手动复制技能目录到你的工具读取技能的位置：
+
+```bash
+git clone https://github.com/tealun/design-to-dev.git
+cp -r design-to-dev/skills/design-to-dev ~/.claude/skills/
+```
+
+Codex 等读取 `~/.agents/skills/` 的工具，把目标目录换成 `~/.agents/skills/`。
+
+### WorkBuddy 等上传技能包的平台
+
+下载仓库根目录的 [`design-to-dev.zip`](design-to-dev.zip)，在平台的技能上传入口选择它。平台要求 `SKILL.md` 位于压缩包根目录时，运行 `python3 scripts/build.py`，上传 `dist/design-to-dev-<版本>-flat.zip`。
+
+## 使用示例
+
+装好后直接说要做的事：
+
+```text
+这是我的 App 设计截图，帮我做成能点的原型，交给开发
+```
+
+```text
+根据这份品牌规范和产品描述，做一个可交互原型和设计规范，我想自己接着往下开发
+```
+
+```text
+把这个 Figma 链接做成原型：https://www.figma.com/design/…
+```
+
+读取 Figma 链接需要 Agent 已连接 Figma MCP；没有的话，导出每个画板的 PNG 和样式截图给它即可。
+
+## 完整示例
+
+[`examples/readlog/`](examples/readlog/) 用一个读书打卡小产品跑通了全流程：输入是一段文字意图和一页品牌规范，产出是 3 个页面的原型、42 个 tokens、交接文档和给 planner 的规划输入。双击 [`examples/readlog/output/prototype/index.html`](examples/readlog/output/prototype/index.html) 即可体验。
+
+## 仓库结构
+
+```text
+skills/design-to-dev/   技能本体：SKILL.md、references/、templates/、scripts/
+examples/readlog/       完整示例
+docs/                   规划与实测记录
+scripts/build.py        平台规则校验与打包
+design-to-dev.zip       WorkBuddy 上传包（CI 校验与源码一致）
+```
+
+## 许可证
+
+MIT

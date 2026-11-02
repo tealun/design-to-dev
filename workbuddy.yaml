@@ -1,0 +1,17 @@
+# WorkBuddy display fields. scripts/build.py injects them into the packaged SKILL.md frontmatter;
+# the source SKILL.md keeps only Agent Skills standard fields. Limits are checked by build.py.
+display_name: "设计转原型 design-to-dev"
+display_name_en: "Design to Dev Prototype"
+description_zh: "给设计师用的“设计稿 → 能跑的原型”技能。把截图、Figma 链接、品牌规范、Claude Design 产出或一段文字意图交给它：先用几个设计师听得懂的问题确认页面、核心流程、用户和交接对象；再提取颜色、字体、字号、间距、圆角、阴影和组件状态，生成 CSS 变量和 JSON 两份 design tokens；然后搭出双击就能打开的可交互原型，页面能点、流程能走通，用假数据演示悬停、空状态、加载和报错；每个关键元素标注【确定】【示意】【待定】，按 Shift+A 就能看到；最后输出 HANDOFF.md（页面清单、流程图、组件、交互、待定问题）。可以直接交给开发，也可以生成 PLANNER_BRIEF.md，接着用 planner 规划下一步开发。自带检查脚本，交付前自动核对。"
+description_en: "Turns a designer's mockups or product idea into a prototype that actually runs. Give it screenshots, a Figma link, brand guidelines, Claude Design output or a short description. It asks a few plain-language questions (pages, core flow, users, who gets the result), extracts colors, type, spacing, radius, shadows and component states into design tokens (CSS variables and W3C JSON), and builds a clickable prototype that opens with a double-click: real navigation, the core flow working end to end, fake data, and hover, empty, loading and error states. Every key element is marked Fixed, Indicative or TBD (press Shift+A to see the marks). It finishes with HANDOFF.md (pages, flow diagram, components, interactions, open questions) for a developer, or a PLANNER_BRIEF.md to continue development with the planner skill. A bundled checker verifies the output before handoff."
+examples_zh:
+  - "这是我的 App 设计截图，帮我做成能点的原型，交给开发"
+  - "根据这份品牌规范和产品描述，做一个可交互原型和设计规范"
+  - "把这个 Figma 链接做成原型，我想自己接着往下开发"
+examples_en:
+  - "Here are my app screenshots. Turn them into a clickable prototype for the developers"
+  - "Build an interactive prototype and design tokens from this brand guide and product brief"
+  - "Make this Figma file into a prototype. I want to keep developing it myself"
+author: Tealun
+category: design
+version: 1.0.0
