@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.1.1 — 2026-11-02
+
+修复发布前审计（`docs/99_audits/99_01_release_audit_v1.1.0.md`）的 4 个 P1，每项附回归测试，测试进入 CI：
+
+- F-01 proto-kit：`Proto.go()` 跳到当前地址时也会重新渲染（此前第二次登录失败会让按钮一直停在“登录中”）。
+- F-02 `tokens_json.py` / `check_output.py`：出现多个 `:root` 块（如深色模式）或非小写的 token 名时明确报错，不再静默丢弃。
+- F-03 `check_output.py` 从 HANDOFF 的“交接对象”读取模式，模式 B 缺少 PLANNER_BRIEF.md 即报错；SKILL.md 第 6 步改为先写 brief 再检查。
+- F-04 proto-kit：本地保存的数据带上 `data.js` 指纹，改了假数据后刷新即生效，不再被旧数据覆盖。
+- 新增 `tests/`：脚本单元测试与 proto-kit 浏览器测试；CI 运行两者。
+
 ## 1.1.0 — 2026-11-02
 
 用一张真实的公开登录页截图实测后迭代（记录见 `docs/02_field-test.md`）：

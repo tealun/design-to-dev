@@ -62,11 +62,19 @@
 
   function storageKey() { return 'proto:' + options.name; }
 
+  /* Fingerprint of data.js, saved with the store: when data.js changes, old saved data is discarded. */
+  function mockFingerprint() {
+    var text = JSON.stringify(window.MOCK === undefined ? {} : window.MOCK);
+    var hash = 0;
+    for (var i = 0; i < text.length; i++) hash = (hash * 31 + text.charCodeAt(i)) | 0;
+    return String(hash);
+  }
+
   function loadStore() {
     try {
-      var saved = localStorage.getItem(storageKey());
-      if (saved) return JSON.parse(saved);
-    } catch (e) { /* storage unavailable: fall back to fresh mock data */ }
+      var saved = JSON.parse(localStorage.getItem(storageKey()) || 'null');
+      if (saved && saved.mock === mockFingerprint()) return saved.data;
+    } catch (e) { /* storage unavailable or unreadable: fall back to fresh mock data */ }
     return clone(window.MOCK);
   }
 
@@ -83,12 +91,17 @@
     /** Navigate. Proto.go('/book/2') or Proto.go('/', { state: 'empty' }) */
     go: function (path, query) {
       var qs = query ? '?' + new URLSearchParams(query).toString() : '';
+      var before = location.hash;
       location.hash = '#' + path + qs;
+      // Same URL: the browser fires no hashchange, so render here or the page stays as it was.
+      if (location.hash === before) render();
     },
 
     /** Persist the fake data store after you change it. */
     save: function () {
-      try { localStorage.setItem(storageKey(), JSON.stringify(Proto.store)); } catch (e) { /* ignore */ }
+      try {
+        localStorage.setItem(storageKey(), JSON.stringify({ mock: mockFingerprint(), data: Proto.store }));
+      } catch (e) { /* ignore */ }
     },
 
     /** Simulated request: resolves with result after ms, or rejects once if "Fail next request" is on. */

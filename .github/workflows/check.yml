@@ -16,3 +16,14 @@ jobs:
         run: python3 scripts/build.py --check
       - name: The bundled example passes the output checker
         run: python3 skills/design-to-dev/scripts/check_output.py examples/readlog/output --mode B
+      - name: Script regression tests
+        run: python3 -m unittest discover -s tests -v
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install Playwright with Chromium
+        run: |
+          npm install --no-save playwright@1.63.0
+          npx playwright install --with-deps chromium
+      - name: proto-kit browser tests
+        run: node tests/kit.test.js

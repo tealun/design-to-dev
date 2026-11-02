@@ -95,7 +95,14 @@ def table_rows(body: str) -> list[list[str]]:
 
 def check_tokens(out: Path, r: Report) -> set[str]:
     css_path, json_path = out / "design-tokens" / "tokens.css", out / "design-tokens" / "tokens.json"
-    css = css_tokens(read(css_path))
+    css_text = read(css_path)
+    css = css_tokens(css_text)
+    roots = re.findall(r":root\s*\{(.*?)\}", css_text, re.S)
+    if len(roots) > 1:
+        r.error(f"design-tokens/tokens.css: {len(roots)} :root blocks; only the first is read, so tokens would be lost")
+    bad = [n for n in re.findall(r"--([^\s:;]+)\s*:", roots[0] if roots else "") if not re.fullmatch(r"[a-z0-9-]+", n)]
+    if bad:
+        r.error(f"design-tokens/tokens.css: token names must be lowercase a-z, 0-9 and hyphens: {', '.join('--' + n for n in bad)}")
     if not css:
         r.error("design-tokens/tokens.css: no tokens found in a :root { } block")
     try:
@@ -209,10 +216,25 @@ def check_handoff(out: Path, routes: list[str], marks: dict[str, int], r: Report
     r.note(f"open questions: {len(questions)}")
 
 
-def check_brief(out: Path, mode: str, r: Report) -> None:
+def handoff_mode(out: Path) -> str | None:
+    """Mode from the HANDOFF 'Handoff to / 交接对象' row: 'A' or 'B', None when not stated."""
+    for line in read(out / "HANDOFF.md").splitlines():
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if len(cells) >= 2 and ("handoff to" in cells[0].lower() or "交接对象" in cells[0]):
+            m = re.match(r"^\W*([AB])\b", cells[1].replace("：", ":"), re.I)
+            return m.group(1).upper() if m else None
+    return None
+
+
+def check_brief(out: Path, mode: str | None, r: Report) -> None:
     brief = read(out / "PLANNER_BRIEF.md")
-    if mode.upper() == "B" and not brief:
-        r.error("mode B needs PLANNER_BRIEF.md")
+    stated = handoff_mode(out)
+    if mode and stated and mode.upper() != stated:
+        r.error(f"--mode {mode.upper()} but HANDOFF.md says the handoff is mode {stated}")
+    mode = (mode or stated or "A").upper()
+    r.note(f"mode: {mode}")
+    if mode == "B" and not brief:
+        r.error("mode B needs PLANNER_BRIEF.md; write it before running this check")
     if brief and "{{" in brief:
         r.error("PLANNER_BRIEF.md: unfilled template placeholder {{…}}")
 
@@ -220,7 +242,7 @@ def check_brief(out: Path, mode: str, r: Report) -> None:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("output", type=Path)
-    ap.add_argument("--mode", default="A", choices=["A", "B", "a", "b"])
+    ap.add_argument("--mode", choices=["A", "B", "a", "b"], help="default: read from HANDOFF.md 'Handoff to', else A")
     ap.add_argument("--prototype-entry", type=Path, help="folder with page sources for non-default stacks")
     args = ap.parse_args()
     out: Path = args.output

@@ -5,7 +5,7 @@ license: MIT
 compatibility: "Needs file read/write. Reading images needs a vision-capable model; Figma links need a Figma MCP server or exported screenshots. The prototype needs only a browser; check_output.py needs Python 3."
 metadata:
   author: Tealun
-  version: "1.1.0"
+  version: "1.1.1"
 ---
 
 # design-to-dev
@@ -84,7 +84,7 @@ Fill [templates/HANDOFF.md](templates/HANDOFF.md): how to open the prototype, pa
 
 ### 6. Check and close
 
-Run the checker and fix every error it reports before closing:
+In mode B, write `PLANNER_BRIEF.md` first (see the closing modes below). Then run the checker and fix every error it reports before closing. It reads the mode from the HANDOFF “Handoff to” row, so in mode B it also checks the brief:
 
 ```bash
 python3 <skill-dir>/scripts/check_output.py <output>

@@ -11,7 +11,7 @@
       "displayName": "Design to Dev",
       "source": "./",
       "description": "For designers: screenshots, Figma links, brand guides or a text idea become a clickable prototype (plain HTML/CSS/JS, fake data, key states), design tokens (CSS + W3C JSON) and HANDOFF.md, with every item marked Fixed, Indicative or TBD.",
-      "version": "1.1.0",
+      "version": "1.1.1",
       "author": {
         "name": "Tealun",
         "url": "https://github.com/tealun"

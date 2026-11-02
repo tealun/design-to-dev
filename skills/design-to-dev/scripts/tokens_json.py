@@ -43,12 +43,20 @@ def split_name(name: str) -> tuple[str, str]:
 
 def parse_css(text: str) -> list[dict]:
     tokens, level, source = [], "indicative", "assumed"
-    body = re.search(r":root\s*\{(.*?)\}", text, re.S)
-    if not body:
+    roots = re.findall(r":root\s*\{(.*?)\}", text, re.S)
+    if not roots:
         raise SystemExit("tokens.css: no :root { ... } block found")
-    for line in body.group(1).splitlines():
+    if len(roots) > 1:
+        raise SystemExit(f"tokens.css: {len(roots)} :root blocks found; use one. Give variants their own names "
+                         "(e.g. --color-bg-dark) or record dark mode as TBD.")
+    bad = [n for n in re.findall(r"--([^\s:;]+)\s*:", roots[0]) if not re.fullmatch(r"[a-z0-9-]+", n)]
+    if bad:
+        raise SystemExit(f"tokens.css: token names must be lowercase a-z, 0-9 and hyphens: {', '.join('--' + n for n in bad)}")
+    for line in roots[0].splitlines():
         m = DECL.match(line)
         if not m:
+            if line.strip().startswith("--"):
+                raise SystemExit(f"tokens.css: cannot read this token line; keep one token per line ending with ';': {line.strip()}")
             continue
         name, value, comment = m.groups()
         if comment:
