@@ -177,7 +177,11 @@
       var m = routes[i].re.exec(path);
       if (m) {
         var params = {};
-        routes[i].keys.forEach(function (k, j) { params[k] = decodeURIComponent(m[j + 1]); });
+        try {
+          routes[i].keys.forEach(function (k, j) { params[k] = decodeURIComponent(m[j + 1]); });
+        } catch (e) {
+          return null; // malformed %-encoding in the URL: show "page not found", never a blank page
+        }
         return { route: routes[i], params: params };
       }
     }

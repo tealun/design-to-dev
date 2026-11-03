@@ -71,6 +71,13 @@ const URL = 'file://' + path.join(__dirname, '..', 'examples', 'readlog', 'outpu
     await page.waitForSelector('.done-panel');
   });
 
+  await test('page-load sequence runs on the shelf', async () => {
+    await page.goto(URL + '#/book/1');
+    await page.goto(URL + '#/');
+    const names = await page.evaluate(() => Array.from(document.querySelectorAll('#app > *')).slice(0, 3).map((el) => getComputedStyle(el).animationName));
+    assert.ok(names.every((n) => n === 'enter'), 'entrance animation missing: ' + names.join(','));
+  });
+
   await test('no page errors', async () => { assert.deepStrictEqual(errors, []); });
 
   await browser.close();

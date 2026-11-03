@@ -103,7 +103,7 @@ a.list__item:hover { background: var(--color-page); text-decoration: none; }
 
 /* ---------- small parts ---------- */
 .badge { display: inline-flex; align-items: center; height: 22px; padding: 0 var(--space-2); border-radius: var(--radius-full); background: var(--color-surface-sunken); color: var(--color-text-secondary); font-size: var(--font-size-xs); font-weight: var(--font-weight-medium); }
-.avatar { display: grid; place-items: center; width: 32px; height: 32px; flex: none; border-radius: var(--radius-full); background: var(--color-accent-soft); color: var(--color-accent); font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); }
+.avatar { display: grid; place-items: center; width: 32px; height: 32px; flex: none; border-radius: var(--radius-full); background: var(--color-surface-sunken); color: var(--color-text-secondary); font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); }
 .segmented { display: flex; padding: 2px; border-radius: var(--radius-md); background: var(--color-surface-sunken); }
 .segmented__item { flex: 1; padding: var(--space-1) var(--space-3); border-radius: var(--radius-sm); color: var(--color-text-secondary); font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); text-align: center; }
 .segmented__item:hover { color: var(--color-text); text-decoration: none; }
@@ -123,6 +123,15 @@ a.list__item:hover { background: var(--color-page); text-decoration: none; }
 .skeleton-row + .skeleton-row { border-top: 1px solid var(--color-border); }
 @keyframes pulse { 50% { opacity: 0.5; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+/* ---------- page-load sequence: proto-kit adds .pk-enter to #app on navigation (not on refresh) ---------- */
+@keyframes enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.pk-enter > * { animation: enter var(--duration-scene) var(--easing-out) both; }
+.pk-enter > :nth-child(2) { animation-delay: 80ms; }
+.pk-enter > :nth-child(3) { animation-delay: 160ms; }
+.pk-enter > :nth-child(4) { animation-delay: 240ms; }
+.pk-enter > :nth-child(5) { animation-delay: 320ms; }
+.pk-enter > :nth-child(n+6) { animation-delay: 400ms; }
 
 /* ---------- page styles ---------- */
 /* Readlog — direction: refined minimal on paper. Hairlines instead of cards; the books carry the drama.

@@ -38,25 +38,29 @@
 
 | ID | Severity | Type / Confidence | Status | Finding | Location | Evidence | Remediation |
 |---|---|---|---|---|---|---|---|
-| F1 | P1 | Confirmed / High | Open | 先删除全部旧 woff2，再下载；下载失败时旧 fonts.css 仍引用已删除的文件，原型字体丢失、检查器报错 | `scripts/fetch_fonts.py:95-96` | 静态：删除在 try 之前；审阅者用不可达代理复现，`fonts/` 只剩 fonts.css | 下载到临时目录，全部成功后再替换 |
-| F2 | P2 | Confirmed / High | Open | 非数字字重（`bold`）抛异常，且发生在删除旧字体之后 | `fetch_fonts.py:59` | `"Noto Serif SC:bold"` → ValueError | 解析参数时先校验 |
-| F3 | P2 | Confirmed / High | Open | 字体名或字重写错（HTTP 400）被报告成“连不上 Google Fonts” | `fetch_fonts.py:103` | `"Nonexistent Fam:400"` → “cannot reach” | 区分 HTTPError 400 与网络错误 |
-| F4 | P2 | Confirmed / High | Open | index.html 没有 tokens.css 链接时，仍提示“已加入 fonts.css” | `fetch_fonts.py:109-113` | 注入后 `grep -c fonts.css` 为 0 | 没注入成功就报错并说明手动加法 |
-| F5 | P2 | Confirmed / High | Open | 原型路径上任何一级目录叫 `fonts` 时，收集字符时把所有文件都排除，中文全部丢出子集；也不收集 CSS `content:` 文字 | `fetch_fonts.py:51` | `fonts/inner/proto` 只收集到 95 个字符 | 用相对路径判断；把 .css 纳入 |
-| V1 | P2 | Confirmed / High | Open | 定位属性（top/left/inset）被当作间距检查，产生误报 | `check_output.py`（`SPACING_PROPS`） | `top: 7px` 报警 | 只检查 margin/padding/gap |
-| V2 | P2 | Confirmed / High | Open | 漏报：负值、rem/em、`grid-gap`、`font:` 简写、通过 token 设为 10px 的字号 | 同上 | 各夹具均无警告 | 解析 token 值；支持 rem（按 16px）与简写；负值取绝对值 |
-| V3 | P2 | Confirmed / High | Open | 字重计数把 `var(--x, 700)` 截断、把 `bold` 与 `700` 计为两种 | 同上 | 夹具输出 6 种 | 解析带回退的 var；把关键字映射为数字 |
-| V4 | P2 | Confirmed / High | Open | 一个豁免注释让整行所有属性都免检 | 同上 | `padding: 6px; font-size: 9px; /* decorative */` 无警告 | 豁免只作用于注释所在的声明，或要求注明豁免哪一项 |
-| V5 | P2 | Confirmed / Medium | Open | 展示字体是 `var(--font-family-base)` 别名时不解析，系统字体检查漏报 | 同上 | 夹具无警告 | 解析一层 var 别名 |
-| V6 | P2 | Confirmed / Medium | Open | pages.js 的内联样式不参与视觉检查 | 同上 | `pages.js:44` 的 `border-radius:2px` 等未检查 | 对内联 `style="…"` 也做同样检查 |
-| C1 | P2 | Confirmed / High | Open | 动效基准写“微交互 150–200ms、常规 300–400ms”，模板为 120/180/640ms，没有常规档，状态过渡未用规定的缓动 | `visual-direction.md`（Motion）；`templates/tokens.css` | 见行 | 统一数值（规则或模板二选一） |
-| C2 | P2 | Confirmed / High | Open | 预设阴影写“Y 2 / 8 / 24px”，模板为 Y 1 / 1 / 8 | 同上 | 见行 | 统一 |
-| C4 | P2 | Confirmed / Low | Open | Readlog 的 `.avatar` 用了强调色（继承自 1.2 模板）；Readlog 没有页面用到它，属于不符合规则的死代码 | `examples/readlog/output/prototype/styles.css:106` | `grep -c avatar pages.js` 为 0 | 与模板同步为中性色 |
-| C5 | P2 | Likely / Medium | Open | Readlog 页标题用展示字体 30px，低于“手机展示字 ≥ 32px” | `styles.css`（`.title`） | 见行 | 改为 32px，或调整规则措辞 |
-| C6 | P2 | Likely / Low | Open | intake 示例把 Readlog 写成“精致极简预设”，实际是该方向加品牌约束（宋体、自有文字色） | `references/intake.md` | 见行 | 措辞改为“精致极简方向 + 品牌约束” |
-| R-8、N-01、N-02、F-05、F-07、F-08、F-16 | P2 | 见前次报告 | Open | — | — | — | — |
+| F1 | P1 | Confirmed / High | Fixed (1.3.1) | 先删除全部旧 woff2，再下载；下载失败时旧 fonts.css 仍引用已删除的文件，原型字体丢失、检查器报错 | `scripts/fetch_fonts.py:95-96` | 静态：删除在 try 之前；审阅者用不可达代理复现，`fonts/` 只剩 fonts.css | 下载到临时目录，全部成功后再替换 |
+| F2 | P2 | Confirmed / High | Fixed (1.3.1) | 非数字字重（`bold`）抛异常，且发生在删除旧字体之后 | `fetch_fonts.py:59` | `"Noto Serif SC:bold"` → ValueError | 解析参数时先校验 |
+| F3 | P2 | Confirmed / High | Fixed (1.3.1) | 字体名或字重写错（HTTP 400）被报告成“连不上 Google Fonts” | `fetch_fonts.py:103` | `"Nonexistent Fam:400"` → “cannot reach” | 区分 HTTPError 400 与网络错误 |
+| F4 | P2 | Confirmed / High | Fixed (1.3.1) | index.html 没有 tokens.css 链接时，仍提示“已加入 fonts.css” | `fetch_fonts.py:109-113` | 注入后 `grep -c fonts.css` 为 0 | 没注入成功就报错并说明手动加法 |
+| F5 | P2 | Confirmed / High | Fixed (1.3.1) | 原型路径上任何一级目录叫 `fonts` 时，收集字符时把所有文件都排除，中文全部丢出子集；也不收集 CSS `content:` 文字 | `fetch_fonts.py:51` | `fonts/inner/proto` 只收集到 95 个字符 | 用相对路径判断；把 .css 纳入 |
+| V1 | P2 | Confirmed / High | Fixed (1.3.1) | 定位属性（top/left/inset）被当作间距检查，产生误报 | `check_output.py`（`SPACING_PROPS`） | `top: 7px` 报警 | 只检查 margin/padding/gap |
+| V2 | P2 | Confirmed / High | Fixed (1.3.1) | 漏报：负值、rem/em、`grid-gap`、`font:` 简写、通过 token 设为 10px 的字号 | 同上 | 各夹具均无警告 | 解析 token 值；支持 rem（按 16px）与简写；负值取绝对值 |
+| V3 | P2 | Confirmed / High | Fixed (1.3.1) | 字重计数把 `var(--x, 700)` 截断、把 `bold` 与 `700` 计为两种 | 同上 | 夹具输出 6 种 | 解析带回退的 var；把关键字映射为数字 |
+| V4 | P2 | Confirmed / High | Fixed (1.3.1) | 一个豁免注释让整行所有属性都免检 | 同上 | `padding: 6px; font-size: 9px; /* decorative */` 无警告 | 豁免只作用于注释所在的声明，或要求注明豁免哪一项 |
+| V5 | P2 | Confirmed / Medium | Fixed (1.3.1) | 展示字体是 `var(--font-family-base)` 别名时不解析，系统字体检查漏报 | 同上 | 夹具无警告 | 解析一层 var 别名 |
+| V6 | P2 | Confirmed / Medium | Fixed (1.3.1) | pages.js 的内联样式不参与视觉检查 | 同上 | `pages.js:44` 的 `border-radius:2px` 等未检查 | 对内联 `style="…"` 也做同样检查 |
+| C1 | P2 | Confirmed / High | Fixed (1.3.1) | 动效基准写“微交互 150–200ms、常规 300–400ms”，模板为 120/180/640ms，没有常规档，状态过渡未用规定的缓动 | `visual-direction.md`（Motion）；`templates/tokens.css` | 见行 | 统一数值（规则或模板二选一） |
+| C2 | P2 | Confirmed / High | Fixed (1.3.1) | 预设阴影写“Y 2 / 8 / 24px”，模板为 Y 1 / 1 / 8 | 同上 | 见行 | 统一 |
+| C4 | P2 | Confirmed / Low | Fixed (1.3.1) | Readlog 的 `.avatar` 用了强调色（继承自 1.2 模板）；Readlog 没有页面用到它，属于不符合规则的死代码 | `examples/readlog/output/prototype/styles.css:106` | `grep -c avatar pages.js` 为 0 | 与模板同步为中性色 |
+| C5 | P2 | Likely / Medium | Fixed (1.3.1) | Readlog 页标题用展示字体 30px，低于“手机展示字 ≥ 32px” | `styles.css`（`.title`） | 见行 | 改为 32px，或调整规则措辞 |
+| C6 | P2 | Likely / Low | Fixed (1.3.1) | intake 示例把 Readlog 写成“精致极简预设”，实际是该方向加品牌约束（宋体、自有文字色） | `references/intake.md` | 见行 | 措辞改为“精致极简方向 + 品牌约束” |
+| R-8、N-01、N-02、F-05、F-07、F-08、F-16 | P2 | 见前次报告 | Fixed (1.3.1) | — | — | — | — |
 
 Rejected: C3（模板展示字为系统字体）——模板是中性起点，检查器对它报警正是为了提醒为每个产品选字体；在参考中写明这一点即可，不算缺陷。
+
+## Fix Log
+
+- 1.3.1：本报告全部发现已修复，回归测试见 `tests/test_scripts.py`（FetchFonts、VisualLintEdges、PaletteInputs、ExampleInSync）与 `tests/kit.test.js`、`tests/example.test.js`；另发现并修复 Readlog 基础样式未同步模板（入场序列不存在）。
 
 ## Verification Gaps
 

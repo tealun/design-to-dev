@@ -156,5 +156,178 @@ class VisualLint(ExampleOutput):
         self.assertIn(fonts[0].name, check.stdout)
 
 
+def load_script(name: str):
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(name.replace(".py", ""), SCRIPTS / name)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+class FetchFonts(ExampleOutput):
+    """F1-F5 (audit 99_03): failures must leave the bundled fonts untouched; inputs are validated first."""
+
+    def proto(self) -> Path:
+        return self.out / "prototype"
+
+    def snapshot(self) -> dict:
+        return {p.name: p.read_bytes() for p in (self.proto() / "fonts").iterdir()}
+
+    def run_offline(self, *args: str) -> subprocess.CompletedProcess:
+        import os
+        env = dict(os.environ, HTTPS_PROXY="http://127.0.0.1:9", https_proxy="http://127.0.0.1:9")
+        return subprocess.run([sys.executable, str(SCRIPTS / "fetch_fonts.py"), str(self.proto()), *args],
+                              capture_output=True, text=True, env=env)
+
+    def test_network_failure_keeps_existing_fonts(self) -> None:
+        before = self.snapshot()
+        result = self.run_offline("Noto Serif SC:700")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(self.snapshot(), before, "fonts folder changed after a failed download")
+        self.assertEqual(run("check_output.py", self.out).returncode, 0)
+
+    def test_bad_weight_is_rejected_before_anything_changes(self) -> None:
+        before = self.snapshot()
+        result = self.run_offline("Noto Serif SC:bold")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("weight", (result.stdout + result.stderr).lower())
+        self.assertEqual(self.snapshot(), before)
+
+    def test_missing_tokens_link_is_reported_before_download(self) -> None:
+        index = self.proto() / "index.html"
+        html = index.read_text(encoding="utf-8")
+        index.write_text(html.replace('<link rel="stylesheet" href="fonts/fonts.css">', "")
+                         .replace('<link rel="stylesheet" href="../design-tokens/tokens.css">', ""), encoding="utf-8")
+        result = self.run_offline("Noto Serif SC:700")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("tokens.css", result.stdout + result.stderr)
+        self.assertNotIn("cannot reach", result.stdout + result.stderr)
+
+    def test_parent_folder_named_fonts_still_collects_text(self) -> None:
+        module = load_script("fetch_fonts.py")
+        nested = self.tmp / "fonts" / "inner" / "prototype"
+        shutil.copytree(self.proto(), nested)
+        (nested / "styles.css").write_text('.x::after { content: "篆"; }', encoding="utf-8")
+        chars = module.used_characters(nested)
+        self.assertIn("书", chars)
+        self.assertIn("篆", chars, "text in CSS content should be subset too")
+
+
+class VisualLintEdges(ExampleOutput):
+    """V1-V6 (audit 99_03): no false alarms on positions, no misses on rem, negatives, shorthands, tokens, inline styles."""
+
+    def lint(self, css: str = "", js: str = "") -> str:
+        if css:
+            with (self.out / "prototype" / "styles.css").open("a", encoding="utf-8") as f:
+                f.write("\n" + css + "\n")
+        if js:
+            with (self.out / "prototype" / "pages.js").open("a", encoding="utf-8") as f:
+                f.write("\n" + js + "\n")
+        return "\n".join(l for l in run("check_output.py", self.out).stdout.splitlines() if l.startswith("WARN"))
+
+    def test_positions_are_not_spacing(self) -> None:
+        self.assertEqual(self.lint(".x { position: absolute; top: 7px; left: 3px; }"), "")
+
+    def test_negative_rem_and_grid_gap_are_checked(self) -> None:
+        out = self.lint(".a { margin-top: -6px; } .b { padding: 0.35rem; } .c { grid-gap: 10px; }")
+        self.assertIn("-6px", out)
+        self.assertIn("0.35rem", out)
+        self.assertIn("10px", out)
+
+    def test_small_text_via_rem_shorthand_and_token(self) -> None:
+        css = self.out / "design-tokens" / "tokens.css"
+        css.write_text(css.read_text(encoding="utf-8").replace("--font-size-xs: 12px;", "--font-size-xs: 10px;"), encoding="utf-8")
+        run("tokens_json.py", css)
+        out = self.lint(".a { font-size: 0.6rem; } .b { font: 600 10px/1.2 serif; }")
+        self.assertIn("0.6rem", out)
+        self.assertIn("font: 10px", out)
+        self.assertIn("--font-size-xs", out)
+
+    def test_weights_resolve_fallbacks_and_keywords(self) -> None:
+        out = self.lint(".a { font-weight: var(--font-weight-bold, 700); } .b { font-weight: bold; }")
+        self.assertEqual(out, "", "700, bold and var(--font-weight-bold) are one weight")
+
+    def test_exemption_covers_one_declaration(self) -> None:
+        out = self.lint(".t { padding: 6px; font-size: 9px; /* decorative: sheen */ }")
+        self.assertIn("6px", out)
+        self.assertNotIn("9px", out)
+
+    def test_display_alias_to_system_font_is_resolved(self) -> None:
+        css = self.out / "design-tokens" / "tokens.css"
+        import re
+        text = re.sub(r"--font-family-display: [^;]+;", "--font-family-display: var(--font-family-system);", css.read_text(encoding="utf-8"))
+        text = text.replace(":root {", ':root {\n  --font-family-system: "PingFang SC", sans-serif; /* indicative · test */', 1)
+        css.write_text(text, encoding="utf-8")
+        run("tokens_json.py", css)
+        self.assertIn("display font", self.lint())
+
+    def test_inline_styles_are_checked(self) -> None:
+        self.assertIn("pages.js", self.lint(js="var x = '<p style=\"font-size:9px;padding:6px\">x</p>';"))
+
+    def test_url_on_line_does_not_hide_inline_color(self) -> None:  # N-01
+        self.lint(js="var x = '<a href=\"https://example.com\" style=\"color:#ff0000\">x</a>';")
+        check = run("check_output.py", self.out)
+        self.assertNotEqual(check.returncode, 0, check.stdout)
+        self.assertIn("#ff0000", check.stdout)
+
+
+class PaletteInputs(unittest.TestCase):
+    """N-02, F-07, F-08 (audits 99_01-99_03)."""
+
+    def test_rows_bad_argument_is_a_usage_error(self) -> None:
+        r = run("palette.py", REPO / "docs" / "images" / "readlog.png", "--rows", "abc")
+        self.assertEqual(r.returncode, 2)
+        self.assertNotIn("Traceback", r.stderr)
+        self.assertIn("--rows", r.stdout + r.stderr)
+
+    def test_named_color_is_a_usage_error(self) -> None:
+        r = run("palette.py", "--contrast", "white", "#000000")
+        self.assertEqual(r.returncode, 2)
+        self.assertNotIn("Traceback", r.stderr)
+
+    def test_alpha_needs_a_backdrop(self) -> None:
+        r = run("palette.py", "--contrast", "#ffffff", "#2f6f4f66")
+        self.assertEqual(r.returncode, 2, r.stdout)
+        r = run("palette.py", "--contrast", "#ffffff", "#2f6f4f66", "--over", "#ffffff")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("1.", r.stdout)  # white text on a pale composite fails badly
+
+    def test_large_image_memory(self) -> None:
+        import resource
+        import struct
+        import zlib
+        tmp = Path(tempfile.mkdtemp())
+        try:
+            w, h = 2880, 4000
+            row = b"\x00" + b"\xfa\xfa\xfa" * w
+            raw = zlib.compress(row * h, 6)
+            def chunk(kind, data):
+                return struct.pack(">I", len(data)) + kind + data + struct.pack(">I", zlib.crc32(kind + data) & 0xFFFFFFFF)
+            png = b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", w, h, 8, 2, 0, 0, 0)) + chunk(b"IDAT", raw) + chunk(b"IEND", b"")
+            (tmp / "big.png").write_bytes(png)
+            before = resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss
+            r = run("palette.py", tmp / "big.png", "--top", "2")
+            self.assertEqual(r.returncode, 0, r.stderr)
+            peak_mb = resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss / 1024
+            self.assertLess(peak_mb, 400, f"palette.py peaked at {peak_mb:.0f} MB on a 2880x4000 image")
+        finally:
+            shutil.rmtree(tmp)
+
+
+class ExampleInSync(unittest.TestCase):
+    """The example must not drift from the templates it claims to use (found in audit 99_03 follow-up)."""
+
+    def test_readlog_base_styles_match_template(self) -> None:
+        marker = "/* ---------- page styles ---------- */"
+        template = (SCRIPTS.parent / "templates" / "styles.css").read_text(encoding="utf-8")
+        example = (EXAMPLE / "prototype" / "styles.css").read_text(encoding="utf-8")
+        self.assertEqual(example.split(marker)[0], template.split(marker)[0],
+                         "copy templates/styles.css (up to the page styles marker) into the Readlog styles.css")
+
+    def test_readlog_kit_matches_template(self) -> None:
+        self.assertEqual((EXAMPLE / "prototype" / "proto-kit.js").read_bytes(),
+                         (SCRIPTS.parent / "templates" / "proto-kit.js").read_bytes())
+
+
 if __name__ == "__main__":
     unittest.main()

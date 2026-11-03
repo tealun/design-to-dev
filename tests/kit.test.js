@@ -34,6 +34,7 @@ function buildFixture() {
         root.querySelector('#save').addEventListener('click', function () { ctx.store.items[0].title = 'Edited in prototype'; Proto.save(); Proto.refresh(); });
       }
     });
+    Proto.page('/item/:id', { render: function (ctx) { return '<p>' + Proto.esc(ctx.params.id) + '</p>'; } });
     Proto.page('/other', { render: function () { return '<p id="other">Other</p>'; } });
     Proto.start({ name: 'kit-test', home: '/', lang: 'en' });`);
   return root;
@@ -83,6 +84,11 @@ function writeData(root, title) {
     assert.ok(await page.evaluate(() => document.getElementById('app').classList.contains('pk-enter')), 'navigation should add pk-enter');
     await page.click('#save'); // Proto.refresh()
     assert.ok(!(await page.evaluate(() => document.getElementById('app').classList.contains('pk-enter'))), 'refresh must not replay the entrance');
+  });
+
+  await test('F-05 malformed percent-encoding shows not-found instead of a blank page', async () => {
+    await page.goto(url + '#/item/%E0');
+    assert.match(await page.textContent('#app'), /not found/i, 'malformed URL should show the not-found message');
   });
 
   await test('no page errors', async () => {

@@ -2,6 +2,8 @@
 
 A prototype that works but looks like an unstyled admin panel or “AI-generated template” fails the designer. Read this before building styles. Parts of the method (direction lock, direction menu, four pillars, atmosphere, orchestrated motion, anti-slop list, benchmarks) are adapted from the frontend-design skill by zxh.
 
+The template files are a neutral refined-minimal starting point. Their system display face is deliberate: the checker warns about it until you choose a face for the product.
+
 Two modes:
 
 - **Fidelity mode** — the designer gave mockups or a VI. Match them; their values win. Use this reference only for parts the design does not cover (states, placeholders, motion, gaps).
@@ -51,7 +53,7 @@ Starting tokens for the three quick picks:
 | Accent | one cool accent; primary button near-black | one deep accent, e.g. `#9f1d20` | one warm accent, e.g. `#c2643d` |
 | Display / body face (Google Fonts) | Geist or Inter Tight display, Geist body; Chinese: Noto Sans SC | Fraunces or Instrument Serif display, Source Serif 4 body; Chinese: Noto Serif SC | Bricolage Grotesque or Fraunces soft display, Nunito Sans body; Chinese: LXGW WenKai / Noto Serif SC |
 | Radius | 6 / 8 / 12 / 16 | 2 / 4 / 6 | 10 / 14 / 20 |
-| Shadow | 3 levels, Y 2 / 8 / 24px, low opacity | none; use rules | soft, warm-tinted |
+| Shadow | 3 levels (`--shadow-xs/sm/md`: Y 1 / 1 / 8, 2–24px blur), low opacity; one dramatic shadow allowed on the memorable element | none; use rules | soft, warm-tinted |
 
 ## 4. The four pillars
 
@@ -59,7 +61,7 @@ Starting tokens for the three quick picks:
 | --- | --- |
 | Typography | The fastest differentiator. Pair a distinctive display face with a refined body face and bundle both with `fetch_fonts.py` (subset to the characters used, so it stays small and offline). A system font or Inter/Roboto/Arial is never the display face unless the VI says so. Display ≥ 32px on phone, ≥ 48px on desktop heroes, tracking −0.02 to −0.04em, line height 1.0–1.15. Body 14–17px, line height 1.5–1.7, 45–75 characters per line (Chinese 28–40). Text weights: three at most, plus one display weight. Tabular numbers for data. |
 | Color & theme | Dominant color about 60%, supporting neutrals about 30%, one sharp accent about 10%, all as CSS variables. The accent marks the primary action, selection, progress and links only — never decoration or data. Choose light or dark base on purpose. |
-| Motion | One orchestrated page-load sequence beats scattered micro-interactions: 3–6 groups revealed with 60–120ms stagger (proto-kit adds `.pk-enter` on navigation; see templates/styles.css). Durations: micro 150–200ms, standard 300–400ms, scene 600–800ms; easing `cubic-bezier(0.16, 1, 0.3, 1)`. Movement uses transform and opacity; color and shadow transitions are fine for states. Everything stops under `prefers-reduced-motion`. |
+| Motion | One orchestrated page-load sequence beats scattered micro-interactions: 3–6 groups revealed with 60–120ms stagger (proto-kit adds `.pk-enter` on navigation; see templates/styles.css). Durations: micro 150–200ms (`--duration-fast`, `--duration-base`, state changes with `--easing-standard`), standard 300–400ms (sheets, toasts), scene 600–800ms (`--duration-scene`, the page-load sequence with `--easing-out` = `cubic-bezier(0.16, 1, 0.3, 1)`). Movement uses transform and opacity; color and shadow transitions are fine for states. Everything stops under `prefers-reduced-motion`. |
 | Composition | Decide air or density, then commit. In app screens keep lists and forms regular and scannable; spend boldness on the header, the hero number, empty states and the one memorable moment (asymmetry, overlap, a dramatic type scale). |
 
 ## 5. Atmosphere, not flat color

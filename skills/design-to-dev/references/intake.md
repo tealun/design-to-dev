@@ -43,7 +43,7 @@ Then the understanding card:
 Product: … | Users: … | Device: …
 Pages: … | Core flow: …
 Mode: A (developer handoff)
-Look: refined minimal preset + brand colors from brand.md (references: none)
+Look: refined minimal direction, constrained by brand.md (brand colors, serif titles); references: none
 Assumptions: … (I'll mark these as Indicative/TBD)
 ```
 
@@ -53,5 +53,5 @@ Assumptions: … (I'll mark these as Indicative/TBD)
 - Pages: exactly those shown or named; nothing extra.
 - Core flow: the main create-or-act action in the design.
 - Mode: A.
-- Look: the brand guide if given, otherwise the refined minimal preset, stated in the understanding card and marked Indicative.
+- Look: the brand guide if given, otherwise the refined minimal direction, stated in the understanding card and marked Indicative.
 - Language of UI copy: the language used in the design.

@@ -2,9 +2,9 @@
 
 ## What to extract
 
-The names below are the ones `templates/styles.css` reads. Keep them (change values, not names) so the template styles keep working; add new names for anything extra.
+The names below are the ones `templates/tokens.css` provides; most are read by `templates/styles.css`, the rest are ready for your pages. Keep them (change values, not names) so the template styles keep working; add new names for anything extra.
 
-| Group | Tokens the template uses | Notes |
+| Group | Tokens the template provides | Notes |
 | --- | --- | --- |
 | color, neutrals | `page` (page background), `surface` (cards, inputs), `surface-sunken`, `border`, `border-strong`, `text`, `text-secondary`, `text-tertiary` | Three text colors at most. |
 | color, actions | `primary`, `primary-hover`, `primary-active`, `on-primary`, `accent`, `accent-soft`, `focus-ring` | One accent. Derive hover/active by shifting lightness 6–10% when the design does not show them; mark derived ones Indicative. |

@@ -6,6 +6,7 @@ Usage:
     python3 palette.py shot.png --top 24           # more colors
     python3 palette.py shot.png --at 200,700 36,412  # colors at image pixel coordinates
     python3 palette.py --contrast "#ffffff" "#1f883d"  # contrast ratio and WCAG AA result
+    python3 palette.py --contrast "#ffffff" "#2f6f4f66" --over "#fbf7f0"   # translucent color on its backdrop
     python3 palette.py shot.png --rows 560-880       # vertical position and height of each block in that x range,
                                                      # in 1x points: compare the source design with the prototype
 
@@ -14,6 +15,7 @@ export a PNG or estimate visually and mark values Indicative. Python 3 standard 
 """
 from __future__ import annotations
 
+import re
 import struct
 import sys
 import zlib
@@ -24,7 +26,28 @@ DEVICE_WIDTHS = [(360, "Android phone"), (375, "iPhone"), (390, "iPhone"), (393,
                  (414, "iPhone Plus"), (430, "iPhone Pro Max"), (768, "tablet"), (1280, "laptop"), (1440, "desktop"), (1920, "desktop")]
 
 
-def decode_png(path: Path) -> tuple[int, int, list[tuple[int, int, int]]]:
+class Image:
+    """Decoded PNG kept as one RGB bytes object per row (about 3 bytes per pixel, not a tuple per pixel)."""
+
+    def __init__(self, width: int, height: int, rows: list[bytes]) -> None:
+        self.width, self.height, self.rows = width, height, rows
+
+    def pixel(self, x: int, y: int) -> tuple[int, int, int]:
+        row = self.rows[y]
+        return row[3 * x], row[3 * x + 1], row[3 * x + 2]
+
+    def row_pixels(self, y: int):
+        row = self.rows[y]
+        return zip(row[0::3], row[1::3], row[2::3])
+
+    def counts(self) -> Counter:
+        total: Counter = Counter()
+        for y in range(self.height):
+            total.update(self.row_pixels(y))
+        return total
+
+
+def decode_png(path: Path) -> Image:
     data = path.read_bytes()
     if data[:8] != b"\x89PNG\r\n\x1a\n":
         raise SystemExit(f"{path}: not a PNG file; export PNG or estimate colors visually")
@@ -48,7 +71,7 @@ def decode_png(path: Path) -> tuple[int, int, list[tuple[int, int, int]]]:
     raw = zlib.decompress(idat)
     stride = width * channels
     prev = bytearray(stride)
-    pixels: list[tuple[int, int, int]] = []
+    rows: list[bytes] = []
     i = 0
     for _ in range(height):
         ftype = raw[i]
@@ -73,28 +96,60 @@ def decode_png(path: Path) -> tuple[int, int, list[tuple[int, int, int]]]:
                 pa, pb, pc = abs(p - a), abs(p - b), abs(p - c)
                 line[x] = (line[x] + (a if pa <= pb and pa <= pc else b if pb <= pc else c)) & 0xFF
         prev = line
-        for x in range(0, stride, channels):
-            if ctype == 2 or ctype == 6:
-                rgb = (line[x], line[x + 1], line[x + 2])
+        if ctype == 2:
+            rows.append(bytes(line))
+            continue
+        rgb = bytearray(width * 3)
+        for px, x in enumerate(range(0, stride, channels)):
+            if ctype == 6:
+                value = (line[x], line[x + 1], line[x + 2])
             elif ctype == 3:
-                rgb = palette[line[x]]
+                value = palette[line[x]]
             else:
-                rgb = (line[x],) * 3
+                value = (line[x],) * 3
             if ctype in (4, 6) and line[x + channels - 1] < 128:
-                rgb = (255, 255, 255)  # treat mostly transparent pixels as a white canvas
-            pixels.append(rgb)
-    return width, height, pixels
+                value = (255, 255, 255)  # treat mostly transparent pixels as a white canvas
+            rgb[3 * px:3 * px + 3] = bytes(value)
+        rows.append(bytes(rgb))
+    return Image(width, height, rows)
 
 
 def hexcolor(rgb: tuple[int, int, int]) -> str:
     return "#%02x%02x%02x" % rgb
 
 
+class UsageError(Exception):
+    pass
+
+
+def parse_color(color: str) -> tuple[tuple[float, float, float], float]:
+    """'#rgb', '#rgba', '#rrggbb' or '#rrggbbaa' -> ((r, g, b) in 0..255, alpha 0..1)."""
+    value = color.strip().lstrip("#")
+    if not re.fullmatch(r"[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8}", value):
+        raise UsageError(f"'{color}' is not a hex color; use #rrggbb (named colors are not supported)")
+    if len(value) in (3, 4):
+        value = "".join(ch * 2 for ch in value)
+    rgb = tuple(int(value[i:i + 2], 16) for i in (0, 2, 4))
+    alpha = int(value[6:8], 16) / 255 if len(value) == 8 else 1.0
+    return rgb, alpha
+
+
+def composite(color: str, backdrop: str | None) -> str:
+    """Flatten a translucent color onto its backdrop; contrast is only defined for opaque colors."""
+    rgb, alpha = parse_color(color)
+    if alpha >= 1:
+        return "#%02x%02x%02x" % rgb
+    if not backdrop:
+        raise UsageError(f"'{color}' is translucent; pass the color it sits on with --over #rrggbb")
+    under, under_alpha = parse_color(backdrop)
+    if under_alpha < 1:
+        raise UsageError("--over must be an opaque color")
+    return "#%02x%02x%02x" % tuple(round(c * alpha + u * (1 - alpha)) for c, u in zip(rgb, under))
+
+
 def luminance(color: str) -> float:
-    color = color.lstrip("#")
-    if len(color) == 3:
-        color = "".join(ch * 2 for ch in color)
-    channels = [int(color[i:i + 2], 16) / 255 for i in (0, 2, 4)]
+    rgb, _ = parse_color(color)
+    channels = [c / 255 for c in rgb]
     lin = [c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4 for c in channels]
     return 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2]
 
@@ -111,11 +166,14 @@ def scale_factor(width: int) -> int:
     return 1
 
 
-def print_rows(width: int, height: int, pixels: list[tuple[int, int, int]], span: str) -> None:
+def print_rows(image: Image, span: str) -> None:
     """Blocks of rows whose pixels differ from the background inside x range span ('x0-x1', image pixels)."""
-    x0, x1 = (int(v) for v in span.split("-"))
-    x0, x1 = max(0, x0), min(width, x1)
-    background = Counter(pixels).most_common(1)[0][0]
+    m = re.fullmatch(r"(\d+)-(\d+)", span or "")
+    if not m or int(m.group(1)) >= int(m.group(2)):
+        raise UsageError(f"--rows needs an x range in image pixels such as 560-880, got '{span}'")
+    width, height = image.width, image.height
+    x0, x1 = max(0, int(m.group(1))), min(width, int(m.group(2)))
+    background = image.counts().most_common(1)[0][0]
     factor = scale_factor(width)
 
     def differs(rgb: tuple[int, int, int]) -> bool:
@@ -124,7 +182,7 @@ def print_rows(width: int, height: int, pixels: list[tuple[int, int, int]], span
     print(f"  blocks in x {x0}-{x1} px, background {hexcolor(background)}, shown at 1x (scale {factor}x): top, height")
     start = None
     for y in range(height + 1):
-        hit = y < height and any(differs(pixels[y * width + x]) for x in range(x0, x1, 2))
+        hit = y < height and any(differs(image.pixel(x, y)) for x in range(x0, x1, 2))
         if hit and start is None:
             start = y
         elif not hit and start is not None:
@@ -142,19 +200,36 @@ def scale_hint(width: int) -> str:
 
 
 def main(argv: list[str]) -> int:
+    try:
+        return run(argv)
+    except (UsageError, ValueError, IndexError) as exc:
+        message = str(exc) if isinstance(exc, UsageError) else f"bad arguments ({exc}); see --help"
+        print(f"palette.py: {message}", file=sys.stderr)
+        return 2
+
+
+def run(argv: list[str]) -> int:
     if not argv or argv[0] in {"-h", "--help"}:
         print(__doc__)
         return 0 if argv else 2
     if argv[0] == "--contrast":
-        ratio = contrast(argv[1], argv[2])
+        if len(argv) < 3:
+            raise UsageError("--contrast needs two colors: --contrast <text> <background> [--over <backdrop>]")
+        over = argv[argv.index("--over") + 1] if "--over" in argv else None
+        backdrop = composite(argv[2], over)
+        text = composite(argv[1], backdrop)
+        ratio = contrast(text, backdrop)
         verdict = "AA pass" if ratio >= 4.5 else "AA pass for large text only" if ratio >= 3 else "AA fail"
-        print(f"{argv[1]} on {argv[2]}: {ratio:.2f}:1 ({verdict})")
+        shown = "" if (text, backdrop) == (argv[1].lower(), argv[2].lower()) else f" (as {text} on {backdrop})"
+        print(f"{argv[1]} on {argv[2]}: {ratio:.2f}:1 ({verdict}){shown}")
         return 0
     path = Path(argv[0])
-    width, height, pixels = decode_png(path)
+    image = decode_png(path)
+    width, height = image.width, image.height
     print(f"{path.name}: {width}x{height} px; likely scale: {scale_hint(width)}")
     if "--rows" in argv:
-        print_rows(width, height, pixels, argv[argv.index("--rows") + 1])
+        span = argv[argv.index("--rows") + 1] if argv.index("--rows") + 1 < len(argv) else ""
+        print_rows(image, span)
         return 0
     if "--at" in argv:
         for point in argv[argv.index("--at") + 1:]:
@@ -162,19 +237,24 @@ def main(argv: list[str]) -> int:
             if not (0 <= x < width and 0 <= y < height):
                 print(f"  ({x},{y}) outside the {width}x{height} image")
                 continue
-            print(f"  ({x},{y}) {hexcolor(pixels[y * width + x])}")
+            print(f"  ({x},{y}) {hexcolor(image.pixel(x, y))}")
         return 0
     top = int(argv[argv.index("--top") + 1]) if "--top" in argv else 16
-    counts = Counter(pixels)
-    first: dict[tuple[int, int, int], int] = {}
-    for index, rgb in enumerate(pixels):
-        if rgb not in first:
-            first[rgb] = index
-    total = len(pixels)
+    counts = image.counts()
+    leaders = counts.most_common(top)
+    wanted = {rgb for rgb, _ in leaders}
+    first: dict[tuple[int, int, int], tuple[int, int]] = {}
+    for y in range(height):
+        if len(first) == len(wanted):
+            break
+        for x, rgb in enumerate(image.row_pixels(y)):
+            if rgb in wanted and rgb not in first:
+                first[rgb] = (x, y)
+    total = width * height
     print("  color    share   first seen at (x,y px)")
-    for rgb, n in counts.most_common(top):
-        idx = first[rgb]
-        print(f"  {hexcolor(rgb)}  {n * 100 / total:5.2f}%  ({idx % width},{idx // width})")
+    for rgb, n in leaders:
+        x, y = first[rgb]
+        print(f"  {hexcolor(rgb)}  {n * 100 / total:5.2f}%  ({x},{y})")
     print("Colors under ~0.05% are usually anti-aliasing; sample a point with --at to confirm a specific element.")
     return 0
 

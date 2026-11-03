@@ -55,7 +55,7 @@ def read(path: Path) -> str:
 
 def strip_non_color_hashes(text: str) -> str:
     """Remove places where '#abc' is not a color: spec notes, href anchors, id selectors, comments."""
-    text = re.sub(r"/\*.*?\*/|//[^\n]*|<!--.*?-->", "", text, flags=re.S)
+    text = re.sub(r"/\*.*?\*/|(?:^|(?<=\s))//[^\n]*|<!--.*?-->", "", text, flags=re.S | re.M)
     text = re.sub(r"data-spec-note=\\?([\"']).*?\\?\1", "", text, flags=re.S)
     text = re.sub(r"href=\\?[\"']#[^\"'\\]*", "href=", text)
     text = re.sub(r"(querySelector(?:All)?|getElementById|closest)\(\s*['\"][^'\"]*['\"]", r"\1(", text)
@@ -195,40 +195,98 @@ def check_prototype(out: Path, entry: Path, default_stack: bool, tokens: set[str
 SYSTEM_FONTS = {"system-ui", "-apple-system", "blinkmacsystemfont", "sf pro text", "sf pro display", "segoe ui", "roboto",
                 "arial", "helvetica", "helvetica neue", "inter", "pingfang sc", "hiragino sans gb", "microsoft yahei",
                 "sans-serif", "serif", "ui-sans-serif", "ui-serif"}
-SPACING_PROPS = re.compile(r"(?<![\w-])(margin|padding|gap|row-gap|column-gap|inset|top|right|bottom|left)(-[a-z]+)?\s*:\s*([^;}]+)")
+SPACING_PROPS = re.compile(r"^(margin|padding)(-(top|right|bottom|left|block|inline)(-(start|end))?)?$|^(row-|column-|grid-)?gap$")
+WEIGHT_WORDS = {"normal": "400", "bold": "700"}
+# One declaration, optionally followed by its own comment (also after a closing brace): "padding: 6px; /* off-scale: … */"
+DECL = re.compile(r"([a-z-]+)\s*:\s*([^;{}]+?)\s*(?:;|(?=\}))\s*\}?\s*(/\*.*?\*/)?")
+LENGTH = re.compile(r"(?<![\w.#-])(-?\d*\.?\d+)(px|rem)\b")
+
+
+def resolve(value: str, tokens: dict[str, str], depth: int = 0) -> str:
+    """Replace var(--x, fallback) with the token value (or the fallback), a few levels deep."""
+    def sub(m: re.Match) -> str:
+        name, fallback = m.group(1), (m.group(2) or "").strip()
+        return tokens.get(name, fallback)
+    for _ in range(4):
+        new = re.sub(r"var\(--([a-z0-9-]+)\s*(?:,\s*([^()]*))?\)", sub, value)
+        if new == value:
+            break
+        value = new
+    return value.strip()
+
+
+def declarations(text: str):
+    """(line number, property, value, exempt) for each declaration in CSS text."""
+    for n, line in enumerate(text.splitlines(), 1):
+        for m in DECL.finditer(line):
+            exempt = bool(m.group(3) and re.match(r"/\*\s*(decorative|off-scale)\b", m.group(3)))
+            yield n, m.group(1), m.group(2), exempt
 
 
 def check_visual(out: Path, entry: Path, tokens_css: str, r: Report) -> None:
     """Objective items of the visual QA checklist (references/visual-direction.md). Warnings, not errors,
-    because a reason may exist; the close must fix or explain each one. Mark a deliberate exception on
-    the same line with a comment such as /* decorative: … */ or /* off-scale: … */."""
-    token_values = dict(re.findall(r"--([a-z0-9-]+)\s*:\s*([^;]+);", tokens_css))
-    css_files = [p for p in sorted(entry.rglob("*.css")) if "fonts" not in p.parts and "node_modules" not in p.parts]
+    because a reason may exist; the close must fix or explain each one. Exempt one declaration with a
+    comment right after it: `font-size: 9px; /* decorative: cover texture */` or `/* off-scale: … */`."""
+    tokens = dict(re.findall(r"--([a-z0-9-]+)\s*:\s*([^;]+);", tokens_css))
     weights: set[str] = set()
     animated = reduced = False
-    for path in css_files:
+
+    def lint(rel: str, n: int, prop: str, raw: str, exempt: bool) -> None:
+        nonlocal animated
+        value = resolve(raw, tokens)
+        if prop in ("animation", "transition") or prop.startswith(("animation-", "transition-")):
+            animated = True
+        if prop == "font-weight":
+            w = WEIGHT_WORDS.get(value, value)
+            if w not in ("inherit", "bolder", "lighter", "initial", "unset"):
+                weights.add(w)
+        if exempt:
+            return
+        sizes = []
+        if prop == "font-size":
+            sizes = LENGTH.findall(value)
+        elif prop == "font":
+            m = re.search(r"(-?\d*\.?\d+)(px|rem)\s*(?:/|\s)", value + " ")
+            sizes = [m.groups()] if m else []
+        for num, unit in sizes:
+            px = float(num) * (16 if unit == "rem" else 1)
+            if px < 12:
+                via = f" (from {raw.strip()})" if "var(" in raw else ""
+                r.warn(f"{rel}:{n}: {prop}: {num}{unit}{via} is below the 12px minimum for readable text")
+        if SPACING_PROPS.match(prop):
+            bad = []
+            for num, unit in LENGTH.findall(value):
+                px = abs(float(num)) * (16 if unit == "rem" else 1)
+                if px not in (0, 1, 2) and px % 4:
+                    bad.append(num + unit)
+            if bad:
+                r.warn(f"{rel}:{n}: {prop} uses {', '.join(bad)}, off the 4px scale")
+
+    for name, value in tokens.items():
+        if name.startswith("font-size-"):
+            for num, unit in LENGTH.findall(value):
+                if float(num) * (16 if unit == "rem" else 1) < 12:
+                    r.warn(f"design-tokens/tokens.css: --{name} is {num}{unit}, below the 12px minimum for readable text")
+    files = [p for p in sorted(entry.rglob("*")) if p.suffix in {".css", ".js", ".html"} and p.is_file()
+             and p.relative_to(entry).parts[0] not in ("fonts", "node_modules") and p.name != "proto-kit.js"]
+    for path in files:
         rel = path.relative_to(out).as_posix()
-        for n, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-            excused = re.search(r"/\*\s*(decorative|off-scale)\b", line)
-            code = re.sub(r"/\*.*?\*/", "", line)
-            for size in re.findall(r"font-size\s*:\s*(\d+(?:\.\d+)?)px", code):
-                if float(size) < 12 and not excused:
-                    r.warn(f"{rel}:{n}: font-size {size}px is below the 12px minimum for readable text")
-            for prop, _, value in SPACING_PROPS.findall(code):
-                bad = [v for v in re.findall(r"(?<![\w.-])(\d+(?:\.\d+)?)px", value) if float(v) not in (0, 1, 2) and float(v) % 4]
-                if bad and not excused:
-                    r.warn(f"{rel}:{n}: {prop} uses {', '.join(b + 'px' for b in bad)}, off the 4px scale")
-            for w in re.findall(r"font-weight\s*:\s*([^;}\s]+)", code):
-                m = re.match(r"var\(--([a-z0-9-]+)\)", w)
-                weights.add(token_values.get(m.group(1), w).strip() if m else w)
-            animated |= bool(re.search(r"\b(animation|transition)\s*:", code))
-            reduced |= "prefers-reduced-motion" in code
-    weights.discard("inherit")
+        text = path.read_text(encoding="utf-8")
+        if path.suffix == ".css":
+            reduced |= "prefers-reduced-motion" in text
+            for n, prop, value, exempt in declarations(text):
+                lint(rel, n, prop, value, exempt)
+        else:
+            # Inline styles in page code: style="…" or style=\"…\".
+            for n, line in enumerate(text.splitlines(), 1):
+                for m in re.finditer(r"style=\\?([\"'])(.*?)\\?\1", line):
+                    for _, prop, value, exempt in declarations(m.group(2)):
+                        lint(rel, n, prop, value, exempt)
     if len(weights) > 4:
         r.warn(f"{len(weights)} font weights in use ({', '.join(sorted(weights))}); keep to 3 for text plus 1 for display")
     if animated and not reduced:
         r.warn("styles animate but never handle prefers-reduced-motion")
-    display = token_values.get("font-family-display") or token_values.get("font-family-base", "")
+    display = resolve(tokens.get("font-family-display") or tokens.get("font-family-base", ""), tokens)
     first = display.split(",")[0].strip().strip("'\"").lower()
     if first in SYSTEM_FONTS:
         r.warn(f"display font '{first}' is a system/default face; choose a distinctive face for the direction and bundle it "

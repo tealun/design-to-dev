@@ -1,11 +1,11 @@
 ---
 name: design-to-dev
-description: "Turn a designer's mockups or product intent into a runnable, clickable prototype plus design tokens and a developer handoff. For designers who know design but not much code. Inputs: screenshots, Figma links, brand guidelines, Claude Design output, or a plain-text product idea. Outputs: prototype/ (plain HTML/CSS/JS, opens by double-click, fake data, hover/empty/loading/error states), design-tokens/ (CSS variables + W3C JSON), and HANDOFF.md (pages, flow diagram, components, interactions, open questions), with every item marked Fixed, Indicative or TBD. Ends by handing off to a developer or by writing a brief for the planner skill. Use for: design to prototype, design to code, mockup or Figma to clickable prototype, extract design tokens, design handoff, design spec for developers. 设计稿转原型、设计转代码、截图/Figma 做成可点击原型、提取设计规范/design tokens、设计交接文档、给开发的交付说明。"
+description: "Turn a designer's mockups or product intent into a runnable, clickable prototype plus design tokens and a developer handoff. For designers who know design but not much code. Inputs: screenshots, Figma links, brand guidelines, Claude Design output, or a plain-text product idea. Outputs: prototype/ (plain HTML/CSS/JS, opens by double-click, fake data, hover/empty/loading/error states), design-tokens/ (CSS variables + W3C JSON), and HANDOFF.md (pages, flow diagram, components, interactions, open questions), with every item marked Fixed, Indicative or TBD. Ends by handing off to a developer or by writing a brief for the planner skill. Use for: design to prototype, mockup or Figma to clickable prototype, a distinctive prototype from a product idea, design tokens and handoff for a prototype, design spec for developers. Not for building production features inside an existing codebase. 设计稿转原型、设计转代码、截图/Figma 做成可点击原型、提取设计规范/design tokens、设计交接文档、给开发的交付说明。"
 license: MIT
 compatibility: "Needs file read/write. Reading images needs a vision-capable model; Figma links need a Figma MCP server or exported screenshots. The prototype needs only a browser; check_output.py needs Python 3."
 metadata:
   author: Tealun
-  version: "1.3.0"
+  version: "1.3.1"
 ---
 
 # design-to-dev
