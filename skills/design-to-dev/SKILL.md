@@ -5,7 +5,7 @@ license: MIT
 compatibility: "Needs file read/write. Reading images needs a vision-capable model; Figma links need a Figma MCP server or exported screenshots. The prototype needs only a browser; check_output.py needs Python 3."
 metadata:
   author: Tealun
-  version: "1.1.1"
+  version: "1.2.0"
 ---
 
 # design-to-dev
@@ -37,6 +37,7 @@ The three spec levels used everywhere:
 Load the reference for the step you are on:
 
 - [references/intake.md](references/intake.md) — reading each input type, the question list, the understanding card.
+- [references/visual-direction.md](references/visual-direction.md) — where the look comes from, the quality bar, direction presets and the visual QA checklist. Read before building styles.
 - [references/design-tokens.md](references/design-tokens.md) — extracting tokens, naming, levels, the two file formats.
 - [references/prototype.md](references/prototype.md) — default stack, proto-kit API, pages, states, fake data, when to use another stack.
 - [references/annotation-and-handoff.md](references/annotation-and-handoff.md) — marking levels, HANDOFF.md, the two closing modes.
@@ -49,13 +50,15 @@ Templates in [templates/](templates/) are starting points to copy into the outpu
 
 Read every input first (see intake reference). Then ask one round of at most five questions, each with a suggested default, covering only what the inputs do not answer:
 
-1. Which pages or screens are in scope?
-2. What is the one core flow that must work end to end?
-3. Who uses it, and on what device (phone, desktop, both)?
-4. Who gets the result: a developer (mode A) or the designer continuing development (mode B)?
+1. Which pages are in scope, and which one flow must work end to end?
+2. Who uses it, and on what device (phone, desktop, both)?
+3. Who gets the result: a developer (mode A) or the designer continuing development (mode B)?
+4. The look: please share your VI / brand guide (colors, fonts, logo) and 2–3 visual references you like (products, screenshots, or a few mood words). Without them, pick a direction: refined minimal (default), editorial, or warm handmade.
 5. Anything that must look exactly like the design, and anything that is just a sketch?
 
-If the user says “you decide” or skips a question, take the default and record it as an assumption. Then show a short understanding card (product, users, device, pages, core flow, mode, assumptions) and continue unless the user corrects it. Do not ask a second round unless an answer contradicts the inputs.
+Always ask question 4 unless a VI and mockups are already provided. The look is the designer's call, never yours to guess.
+
+If the user says “you decide” or skips a question, take the default and record it as an assumption. Then show a short understanding card (product, users, device, pages, core flow, mode, visual direction and its sources, assumptions) and continue unless the user corrects it. Do not ask a second round unless an answer contradicts the inputs.
 
 ### 2. Extract the design rules
 
@@ -63,7 +66,7 @@ Build tokens for color, typography (family, size scale, weight, line height), sp
 
 ### 3. Build the clickable prototype
 
-Copy the templates into `prototype/`, adjust the base components in `styles.css` to the design (weights, radius, borders; the template's defaults are not the design), then write `data.js` (fake data) and `pages.js` (one entry per page). Requirements:
+Copy the five prototype templates (`index.html`, `styles.css`, `proto-kit.js`, `data.js`, `pages.js`) into `prototype/`. The templates implement the refined minimal direction; adapt `styles.css` to the VI, mockups, references or chosen preset (weights, radius, borders, density), then write `data.js` (fake data) and `pages.js` (one entry per page). Follow the principles in the visual direction reference: hierarchy from type and color rather than boxes, one accent, hairline surfaces, designed placeholders and states. Requirements:
 
 - Every page in scope exists and every step of the core flow is clickable from the first page. If the flow ends on a page that was not designed (after sign-in, after checkout), add a minimal stub page marked TBD instead of inventing a design.
 - Links to pages outside the scope get `data-out`: the kit shows a “not in this prototype” toast. List them as open questions.
@@ -90,14 +93,14 @@ In mode B, write `PLANNER_BRIEF.md` first (see the closing modes below). Then ru
 python3 <skill-dir>/scripts/check_output.py <output>
 ```
 
-If you can drive a browser, open `prototype/index.html` at the design's width, walk the core flow and each state, and put each screenshot side by side with its source design. Fix visible differences in anything marked Fixed (color, weight, size, order); a page that renders blank or unstyled is a failure even when the checker passes.
+If you can drive a browser, open `prototype/index.html` at the design's width, walk the core flow and each state, and put each screenshot side by side with its source design. Fix visible differences in anything marked Fixed (color, weight, size, order); a page that renders blank or unstyled is a failure even when the checker passes. Then run the visual QA checklist in the visual direction reference on every screenshot and fix each failed item; without a browser, review the CSS against the same checklist and say the visual check was not seen.
 
 Then close in the chosen mode:
 
 - **Mode A, hand to a developer:** make HANDOFF.md self-explanatory, put open questions first in the summary, and tell the designer what to send (the whole output folder).
 - **Mode B, continue development:** also write `PLANNER_BRIEF.md` from [templates/PLANNER_BRIEF.md](templates/PLANNER_BRIEF.md) and tell the designer to start the next stage with it, for example “use planner with PLANNER_BRIEF.md”.
 
-Close with plain-language results for the designer: how to open the prototype, what to click to see the core flow and the states, how to show the spec marks (the Spec button or Shift+A), the open questions that need their decision, and the checker result.
+Close with plain-language results for the designer: how to open the prototype, what to click to see the core flow and the states, how to show the spec marks (the Spec button or Shift+A), the open questions that need their decision, the visual direction used and the visual QA result, and the checker result.
 
 ## Rules
 

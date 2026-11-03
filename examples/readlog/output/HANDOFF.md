@@ -6,7 +6,7 @@
 | 项 Item | 内容 Value |
 | --- | --- |
 | 交接对象 Handoff to | B：设计师继续开发（同时可直接交给开发同事阅读） |
-| 设计来源 Sources | `input/brief.md` 产品意图（文字）；`input/brand.md` 品牌规范 v0.3 节选。没有视觉稿，版式由 design-to-dev 按品牌规范推导。 |
+| 设计来源 Sources | `input/brief.md` 产品意图（文字）；`input/brand.md` 品牌规范 v0.3 节选。没有视觉稿和视觉参考，设计师选择了“现代精致极简”方向，版式按该方向与品牌规范推导。 |
 | 目标用户 Users | 想养成阅读习惯的上班族，睡前读完顺手记录 |
 | 设备 Devices | 手机优先（390 宽），桌面端居中显示 |
 | 日期 Date | 2026-11-02 |
@@ -51,25 +51,25 @@ flowchart LR
 
 | 组件 Component | 出现位置 Used on | 变体与状态 Variants & states | 等级 Level | 说明 Notes |
 | --- | --- | --- | --- | --- |
-| 主按钮 Primary button | 全部页面 | default, hover, focus, disabled, busy（“记录中…”） | 【确定】 | 苔绿底白字，手机上通栏，书架和添加页固定在底部 |
-| 次按钮 Secondary button | 报错状态 | default, hover, focus | 【示意】 | 纸色底、细边框 |
-| 书卡片 Book card | 书架 | hover 描边变苔绿；书名最多两行省略 | 【确定】 | 封面色块 + 书名 + 作者（缺省“作者未填写”）+ 进度条 + 页数百分比 |
-| 封面色块 Cover | 书架、详情、添加 | moss / amber / clay / slate；详情页大号 | 【示意】 | 没有真实封面时的占位，显示书名首字 |
-| 进度条 Progress bar | 书架、详情 | 0–100% | 【确定】 | 苔绿填充，圆角 |
-| 连续打卡卡片 Streak card | 书架 | — | 【示意】 | 琥珀色强调，规则见待定问题 1 |
-| 分栏 Tabs | 书架 | 在读 / 读完，选中项白底阴影 | 【确定】 | 数字为本数 |
-| 输入框 Field | 详情、添加 | default, focus（苔绿描边+光圈）, error（红框+下方提示） | 【确定】 | |
-| 颜色选择 Swatches | 添加 | 未选、选中（墨色描边）、键盘焦点 | 【示意】 | |
-| 骨架屏 Skeleton | 加载状态 | 动画；减少动态效果时静止 | 【示意】 | |
+| 主按钮 Primary button | 全部页面 | default, hover, active, focus, disabled, busy（“记录中…”） | 【确定】 | 苔绿底白字；书架和添加页为 48px 通栏并固定在底部，详情页与输入框同高并排 |
+| 次按钮 / 文字按钮 Secondary / ghost | 报错状态、详情页“编辑或删除” | default, hover, focus | 【示意】 | 暖白底细边框 / 无底色 |
+| 书目行 Book row | 书架 | hover 底色变纸色；书名单行省略 | 【确定】 | 一个列表面板内用分隔线，不用一书一卡片：封面 + 书名 + 作者（缺省“作者未填写”）+ 细进度条与百分比 |
+| 封面 Cover | 书架（40px）、添加（52px）、详情（84px） | moss / amber / clay / slate | 【示意】 | 5:7 比例，渐变 + 书脊阴影 + 真实书名（宋体）；没有真实封面时的占位 |
+| 连续阅读 Streak | 书架 | 已读（琥珀点）、未读、今天（外圈） | 【示意】 | 大号天数 + 本周 7 天打点；琥珀色只用于这里，规则见待定问题 1 |
+| 分段切换 Segmented control | 书架 | 在读 / 读完，选中项暖白底轻阴影 | 【确定】 | 数字为本数，等宽数字 |
+| 数据组 Stats | 详情 | — | 【确定】 | 进度 / 已读 / 剩余三列，等宽数字 + 6px 进度条 |
+| 输入框 Field | 详情、添加 | default, hover, focus（苔绿描边 + 光圈）, error（红框 + 下方提示，编辑后立即消失） | 【确定】 | 44px 高 |
+| 封面选择 Cover picker | 添加 | 未选、选中（苔绿外圈）、键盘焦点；预览实时显示输入的书名 | 【示意】 | |
+| 状态视图 Empty / loading / error | 书架、详情 | 图标圆 + 一句话 + 一个操作；骨架屏与列表同形 | 【确定】（空状态）/【示意】 | |
 | 提示条 Toast | 保存成功/失败 | 默认（墨色）、错误（红色） | 【示意】 | 顶部居中，约 2.5 秒消失 |
 
 素材清单 Assets：
 
 | 素材 Asset | 位置 Where | 状态 Status | 等级 Level |
 | --- | --- | --- | --- |
-| 书籍封面 Book covers | 书架、详情 | 占位：品牌色块 + 书名首字 | 【示意】 |
-| 空书架插图 Empty-shelf illustration | 书架空状态 | 占位：浅琥珀圆形 | 【待定】 |
-| 品牌字体 Noto Serif SC | 标题 | 未打包，回退系统宋体 | 【待定】（问题 6） |
+| 书籍封面 Book covers | 书架、详情、添加 | 占位：品牌色渐变 + 书名 | 【示意】 |
+| 图标 Icons | 全部页面 | 内联线性图标（16px，1.5px 描边），可换成正式图标库 | 【示意】 |
+| 品牌字体 Noto Serif SC | 标题、封面书名 | 未打包，回退系统宋体 | 【待定】（问题 6） |
 
 ## 4. 交互细节 Interactions
 
@@ -88,17 +88,18 @@ flowchart LR
 
 ## 5. 设计规范 Design tokens
 
-文件 Files: `design-tokens/tokens.css`（CSS 变量），`design-tokens/tokens.json`（W3C 格式，含每项等级与来源），共 42 项。
+文件 Files: `design-tokens/tokens.css`（CSS 变量），`design-tokens/tokens.json`（W3C 格式，含每项等级与来源），共 77 项。视觉方向：现代精致极简预设，受品牌规范约束。
 
 | 类别 Group | 关键值 Key values | 等级 Level |
 | --- | --- | --- |
-| 颜色 Color | Moss `#3E7C59` 主色；Amber `#E3A23B` 成就；Ink `#1F2A2E` 文字；Paper `#FBF7F0` 背景 | 【确定】（品牌规范） |
-| 派生色 Derived | hover `#346B4C`、浅琥珀 `#FBEDD4`、表面 `#F3ECE0`、边框、弱文字 `#6B6459`、错误 `#B3261E` | 【示意】 |
-| 字体 Type | 标题 Noto Serif SC 粗体；正文系统无衬线；字号 14/16/20/24/32；行高 1.6 | 字体【确定】，字号【示意】 |
-| 间距与圆角 Space & radius | 4px 基数；圆角 6/12/全圆 | 【示意】 |
-| 尺寸 Size | 触控目标 48px；内容最宽 480px | 触控【确定】 |
+| 品牌色 Brand | Moss `#3E7C59` 主操作与进度；Amber `#E3A23B` 只用于连续阅读；Ink `#1F2A2E` 文字；Paper `#FBF7F0` 页面背景 | 【确定】（品牌规范） |
+| 中性色 Neutrals | 表面 `#FFFDF9`、凹陷 `#F3ECE0`、细边框 `#EBE3D4`；文字二级 `#4F4A42`、三级 `#74695C` | 【示意】 |
+| 字体 Type | 标题 Noto Serif SC 粗体、字距 −0.01em；正文系统无衬线；字号 12/13/15/17/20/24/30；数字用等宽数字 | 字体【确定】，字号【示意】 |
+| 间距与圆角 Space & radius | 4px 基数；圆角 3（封面）/6/10/14/18/全圆 | 【示意】 |
+| 阴影 Shadow | 极轻的纸面阴影；封面单独一档 | 【示意】 |
+| 尺寸 Size | 控件 44px；通栏主按钮 48px；内容最宽 480px | 【确定】 |
 
-对比度 Contrast：白字/苔绿 4.96:1，弱文字/纸色 5.47:1，墨色/琥珀 6.65:1，均达到 WCAG AA。琥珀封面上用墨色字（白字只有 2.2:1）。
+对比度 Contrast（`palette.py --contrast` 计算）：Ink/Paper 13.76:1；二级文字/Paper 8.23:1；三级文字/Paper 5.02:1、/表面 5.28:1；白字/Moss 4.96:1；Ink/琥珀封面 8.98:1；白字/陶土封面 4.89:1。均达到 WCAG AA。
 
 ## 6. 标注等级 Spec levels
 

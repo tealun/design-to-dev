@@ -6,7 +6,7 @@ Plain HTML + CSS + JavaScript, no build step, no dependencies. The designer open
 
 | File | Role | Edit? |
 | --- | --- | --- |
-| `index.html` | Loads tokens, styles, data, kit, pages in that order | Set the title and `lang` |
+| `index.html` | Loads tokens, styles, data, kit, pages in that order | Replace `{{PRODUCT_NAME}}` and `{{LANG}}` (`zh` or `en`; the same value goes into `Proto.start` in `pages.js`) |
 | `styles.css` | Base components on token variables | Yes, add page styles at the end |
 | `proto-kit.js` | Routing, state switcher, fake requests, spec layer, toast | No |
 | `data.js` | `window.MOCK` fake data | Yes |

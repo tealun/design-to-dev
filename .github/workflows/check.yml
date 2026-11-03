@@ -27,3 +27,5 @@ jobs:
           npx playwright install --with-deps chromium
       - name: proto-kit browser tests
         run: node tests/kit.test.js
+      - name: Readlog example browser tests
+        run: node tests/example.test.js

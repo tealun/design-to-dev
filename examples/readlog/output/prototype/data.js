@@ -1,6 +1,7 @@
 /* data.js — Readlog fake data. Fictional books and authors; replace with real API data in development. */
 window.MOCK = {
   streakDays: 5,
+  week: [true, true, false, true, true, true, false], // Monday to Sunday: read on that day
   books: [
     { id: '1', title: '慢慢来的散步', author: '林小鹿', totalPages: 240, currentPage: 96, cover: 'moss',
       logs: [ { date: '2026-10-30', page: 60 }, { date: '2026-10-31', page: 81 }, { date: '2026-11-01', page: 96 } ] },

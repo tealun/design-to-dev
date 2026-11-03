@@ -24,14 +24,17 @@ If links in the design lead to pages you were not given (forgot password, sign u
 
 Ask once, at most five questions, each answerable in a few words and each with a default the designer can accept by saying “ok”. Skip any question the inputs already answer. Write for a designer: no words like route, component tree, state machine, API.
 
+Always include the look question unless a VI and mockups are already in the material. Ask for the VI / brand guide and 2–3 visual references (screenshots or product names they like, or a few mood words); if they have none, offer the three presets from the visual direction reference with refined minimal as the default. References are for type, density, radius and color restraint, never for copying another brand.
+
 Example wording:
 
 ```text
-I've read the 3 screens. Before I build, 4 quick questions (reply "ok" to take my suggestion):
-1. Pages: Home, Book detail, Add book. Anything else? (suggested: these 3)
-2. Must-work flow: add a book, then log today's reading from its page. Right?
-3. Mainly used on a phone? (suggested: phone first, also fine on desktop)
-4. Who gets this next: a developer (A), or you'll keep building it yourself (B)? (suggested: A)
+I've read the brief. Before I build, 4 quick questions (reply "ok" to take my suggestion):
+1. Pages: Shelf, Book detail, Add book; the flow that must work is "add a book, then log today's reading". Right?
+2. Mainly used on a phone? (suggested: phone first, also fine on desktop)
+3. Who gets this next: a developer (A), or you'll keep building it yourself (B)? (suggested: A)
+4. The look: do you have a VI / brand guide and 2–3 apps or screenshots whose feel you like?
+   If not, pick one: refined minimal (calm, precise, like Linear or Things; suggested), editorial (magazine-like, serif titles), warm handmade (soft, rounded, notebook-like).
 ```
 
 Then the understanding card:
@@ -40,6 +43,7 @@ Then the understanding card:
 Product: … | Users: … | Device: …
 Pages: … | Core flow: …
 Mode: A (developer handoff)
+Look: refined minimal preset + brand colors from brand.md (references: none)
 Assumptions: … (I'll mark these as Indicative/TBD)
 ```
 
@@ -49,4 +53,5 @@ Assumptions: … (I'll mark these as Indicative/TBD)
 - Pages: exactly those shown or named; nothing extra.
 - Core flow: the main create-or-act action in the design.
 - Mode: A.
+- Look: the brand guide if given, otherwise the refined minimal preset, stated in the understanding card and marked Indicative.
 - Language of UI copy: the language used in the design.
