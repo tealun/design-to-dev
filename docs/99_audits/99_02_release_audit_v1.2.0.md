@@ -42,21 +42,23 @@
 
 | ID | Severity | Type / Confidence | Status | Finding | Location | Evidence | Remediation |
 |---|---|---|---|---|---|---|---|
-| R-6 | P1 | Confirmed / High | Open | Readlog 写“视觉自查 12/12”，实际不符合第 3 项（4 种字重：400/500/600/700；第 4 种文字颜色：苔绿用于“+15 页”数据）、第 5 项（6px 间距、6/5/9px 内边距）、原则中“标签最小 12px”（封面字 7/8/11px）与嵌套圆角规则（R-5）。`docs/04_field-test-2.md` 的自查表同样写了通过。 | `examples/readlog/output/HANDOFF.md:102`；`prototype/styles.css:145,164,170,288` | 本节逐项 grep 结果；字重统计 bold 3、medium 9、semibold 5 处 | 修正示例；让 check_output 自动检查可客观判断的自查项（字重种数、字号下限、非刻度间距、强调色用途），自评项只能写“待用户确认” |
+| R-6 | P1 | Confirmed / High | Fixed (1.3.0) | Readlog 写“视觉自查 12/12”，实际不符合第 3 项（4 种字重：400/500/600/700；第 4 种文字颜色：苔绿用于“+15 页”数据）、第 5 项（6px 间距、6/5/9px 内边距）、原则中“标签最小 12px”（封面字 7/8/11px）与嵌套圆角规则（R-5）。`docs/04_field-test-2.md` 的自查表同样写了通过。 | `examples/readlog/output/HANDOFF.md:102`；`prototype/styles.css:145,164,170,288` | 本节逐项 grep 结果；字重统计 bold 3、medium 9、semibold 5 处 | 修正示例；让 check_output 自动检查可客观判断的自查项（字重种数、字号下限、非刻度间距、强调色用途），自评项只能写“待用户确认” |
 | N-01 | P2 | Confirmed / High | Open | 原始色检查把 `https://` 后的整行当成注释删掉，同一行后面的内联颜色漏检 | `skills/design-to-dev/scripts/check_output.py`（`strip_non_color_hashes`） | 追加 `<a href="https://example.com" style="color:#ff0000">` 后检查 PASS | 只删除行首或语句外的 `//` 注释；补回归测试 |
-| R-1 | P2 | Confirmed / High | Open | 规则写“动效只用 opacity 和 transform”，模板与示例对背景色、边框色、阴影做过渡 | `visual-direction.md:33`；`templates/styles.css:56,81,96` | 见行 | 规则改为“颜色与阴影的状态过渡也可以；位移类动效只用 transform/opacity” |
-| R-2 | P2 | Confirmed / High | Open | 模板列表头像使用强调色，违反“强调色只用于主操作、选中、进度、链接” | `templates/styles.css`（`.avatar`） | 见行 | 头像改用中性色 |
-| R-3 | P2 | Confirmed / High | Open | 占位图规则互相矛盾：prototype 参考推荐“灰框写素材名”，视觉参考禁止“灰框写 image” | `references/prototype.md:51`；`visual-direction.md:30` | 见行 | 统一为视觉参考的写法 |
-| R-4 | P2 | Likely / Medium | Open | Readlog 圆角 10/14 与预设 6/8/12/16 不同；规划文档写 6/10/14，与参考不一致，且没有记录为品牌例外 | `examples/readlog/output/design-tokens/tokens.css:76-77`；`docs/03_visual-quality-plan.md` | 见行 | 记录为品牌“柔和圆角”的例外，或改回预设 |
-| R-5 | P2 | Confirmed / High | Open | 分段切换内外圆角不符合“内 = 外 − 内边距” | `examples/readlog/output/prototype/styles.css`（`.segmented`、`.segmented__item`） | 外 10、内边距 2、内 6 | 内圆角改为 8 |
-| R-7 | P2 | Confirmed / High | Open | 示例间距与字号不在刻度上（见 R-6 证据） | 同 R-6 | 同 R-6 | 改用刻度值；封面书名视为装饰时在规则中写明例外 |
+| R-1 | P2 | Confirmed / High | Fixed (1.3.0) | 规则写“动效只用 opacity 和 transform”，模板与示例对背景色、边框色、阴影做过渡 | `visual-direction.md:33`；`templates/styles.css:56,81,96` | 见行 | 规则改为“颜色与阴影的状态过渡也可以；位移类动效只用 transform/opacity” |
+| R-2 | P2 | Confirmed / High | Fixed (1.3.0) | 模板列表头像使用强调色，违反“强调色只用于主操作、选中、进度、链接” | `templates/styles.css`（`.avatar`） | 见行 | 头像改用中性色 |
+| R-3 | P2 | Confirmed / High | Fixed (1.3.0) | 占位图规则互相矛盾：prototype 参考推荐“灰框写素材名”，视觉参考禁止“灰框写 image” | `references/prototype.md:51`；`visual-direction.md:30` | 见行 | 统一为视觉参考的写法 |
+| R-4 | P2 | Likely / Medium | Fixed (1.3.0) | Readlog 圆角 10/14 与预设 6/8/12/16 不同；规划文档写 6/10/14，与参考不一致，且没有记录为品牌例外 | `examples/readlog/output/design-tokens/tokens.css:76-77`；`docs/03_visual-quality-plan.md` | 见行 | 记录为品牌“柔和圆角”的例外，或改回预设 |
+| R-5 | P2 | Confirmed / High | Fixed (1.3.0) | 分段切换内外圆角不符合“内 = 外 − 内边距” | `examples/readlog/output/prototype/styles.css`（`.segmented`、`.segmented__item`） | 外 10、内边距 2、内 6 | 内圆角改为 8 |
+| R-7 | P2 | Confirmed / High | Fixed (1.3.0) | 示例间距与字号不在刻度上（见 R-6 证据） | 同 R-6 | 同 R-6 | 改用刻度值；封面书名视为装饰时在规则中写明例外 |
 | R-8 | P2 | Confirmed / Medium | Open | token 参考表标题写“模板使用的 token”，其中十余项模板并未使用 | `references/design-tokens.md` | 声明与使用的名称做差集 | 标题改为“模板提供的 token” |
-| R-9 | P2 | Confirmed / High | Open | HANDOFF 把“内容最宽 480px”标为【确定】，tokens 中为【示意】 | `examples/readlog/output/HANDOFF.md:100`；`tokens.css:94` | 见行 | 两处统一 |
-| R-10 | P2 | Confirmed / High | Open | HANDOFF 写“琥珀只用于连续阅读”，琥珀封面也用了品牌琥珀 | `HANDOFF.md:58,95`；`tokens.css:35` | 见行 | 改写说明，或封面改用其他颜色 |
-| R-11 | P2 | Confirmed / High | Open | 品牌字体在 tokens 中为【确定】，HANDOFF 素材清单为【待定】，SKILL.md 规定字体不可用时记为【待定】 | `tokens.css:44`；`HANDOFF.md` 第 3 节 | 见行 | 字族【确定】、字体文件加载【待定】，两处写清 |
-| R-12 | P2 | Exposure / Medium | Open | 模板三级文字在凹陷底色上 4.40:1，不达标；目前没有文字放在这一组合上 | `templates/tokens.css` | `palette.py --contrast "#71717a" "#f4f4f5"` | 三级文字加深一档，或在参考中注明禁止该组合 |
+| R-9 | P2 | Confirmed / High | Fixed (1.3.0) | HANDOFF 把“内容最宽 480px”标为【确定】，tokens 中为【示意】 | `examples/readlog/output/HANDOFF.md:100`；`tokens.css:94` | 见行 | 两处统一 |
+| R-10 | P2 | Confirmed / High | Fixed (1.3.0) | HANDOFF 写“琥珀只用于连续阅读”，琥珀封面也用了品牌琥珀 | `HANDOFF.md:58,95`；`tokens.css:35` | 见行 | 改写说明，或封面改用其他颜色 |
+| R-11 | P2 | Confirmed / High | Fixed (1.3.0) | 品牌字体在 tokens 中为【确定】，HANDOFF 素材清单为【待定】，SKILL.md 规定字体不可用时记为【待定】 | `tokens.css:44`；`HANDOFF.md` 第 3 节 | 见行 | 字族【确定】、字体文件加载【待定】，两处写清 |
+| R-12 | P2 | Exposure / Medium | Fixed (1.3.0) | 模板三级文字在凹陷底色上 4.40:1，不达标；目前没有文字放在这一组合上 | `templates/tokens.css` | `palette.py --contrast "#71717a" "#f4f4f5"` | 三级文字加深一档，或在参考中注明禁止该组合 |
 | N-02 | P2 | Confirmed / High | Open | `--rows` 参数格式错误时抛出原始异常 | `scripts/palette.py` | `--rows abc` → ValueError | 给出可读的用法提示（可与 F-07 一并处理） |
 | F-05, F-07, F-08, F-16 | P2 | 见 99_01 | Open | 见上表 | — | — | — |
+
+- 1.3.0：R-1–R-7、R-9–R-12 已修复，复核见 `99_03_release_audit_v1.3.0.md`；R-8、N-01、N-02 仍为 Open。
 
 ## Verification Gaps
 
