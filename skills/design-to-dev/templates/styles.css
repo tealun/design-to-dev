@@ -81,6 +81,8 @@ img, svg { display: block; }
   transition: border-color var(--duration-fast) var(--easing-standard), box-shadow var(--duration-fast) var(--easing-standard);
 }
 .field__input::placeholder { color: var(--color-text-tertiary); }
+.field__input[type="number"] { -moz-appearance: textfield; }
+.field__input::-webkit-outer-spin-button, .field__input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .field__input:hover { border-color: var(--color-border-strong); }
 .field__input:focus { outline: none; border-color: var(--color-accent); box-shadow: 0 0 0 3px var(--color-focus-ring); }
 .field--error .field__input { border-color: var(--color-danger); }

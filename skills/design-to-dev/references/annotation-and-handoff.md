@@ -43,4 +43,4 @@ Write in the designer's language. Avoid code in sections 0–6 except file names
 
 ## Checker
 
-`scripts/check_output.py <output>` verifies the folder structure, that both token files list the same names with valid levels, that HANDOFF.md has its sections, a Mermaid flow and open questions, that every page in `pages.js` is listed in HANDOFF and vice versa, that spec marks use valid levels, that every TBD mark has open questions, that styles and pages use no raw colors, and that the prototype loads no remote scripts. Errors must be fixed; warnings must be read and either fixed or explained in the close.
+`python3 <skill-dir>/scripts/check_output.py <output>` verifies the folder structure, that both token files list the same names with valid levels, that HANDOFF.md has its sections, a Mermaid flow and open questions, that every page in `pages.js` is listed in HANDOFF and vice versa, that spec marks use valid levels, that every TBD mark has open questions, that styles and pages use no raw colors, and that the prototype loads no remote scripts. Errors must be fixed; warnings must be read and either fixed or explained in the close.

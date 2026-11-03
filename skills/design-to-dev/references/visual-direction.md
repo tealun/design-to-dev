@@ -20,6 +20,7 @@ Ask for 1 and 3 in the question round (see intake). Never invent a brand persona
 | Hierarchy | Build it with size, weight and color, not with boxes. One focal point per screen: the main content or the primary action. |
 | Type | One sans family (plus at most one display family from the brand). 2–3 weights (400/500/600). Body 14–16px, line height 1.5. Titles 24–32px, line height 1.2–1.25, letter spacing −0.01 to −0.02em. Labels and meta 12–13px. Numbers use `font-variant-numeric: tabular-nums`. |
 | Text color | At most three: primary, secondary, tertiary. Never pure black on pure white for large areas of text; use near-black (#18181b-like). |
+| Contrast | WCAG AA for all text (`palette.py --contrast`). When the source design itself fails (common for links and footer greys), use the nearest passing shade, keep the original value in the token comment, and add an open question. |
 | Color | Neutrals do 90% of the work. One accent, used only for the primary action, selection, progress and links. No large saturated fills except the one primary button. |
 | Spacing | 4px base. Items inside a group 8–12px apart, groups 24–32px apart, page edges 16–24px (phone) or 32px+ (desktop). Section spacing is always larger than item spacing. |
 | Surfaces | One elevation level per region. 1px hairline borders first, very soft shadows second, never a heavy border and a heavy shadow together. No card inside a card: inside a card use dividers or spacing. |
@@ -64,5 +65,5 @@ Run on the screenshots of every page and state, at the design's width, before cl
 8. Titles have tightened letter spacing; numbers are tabular; nothing overflows.
 9. Icons share size and stroke; no emoji used as icons.
 10. Nothing looks like an unstyled browser default.
-11. Against the VI, mockups or references (when given): palette, type, radius and density match side by side.
+11. Against the VI, mockups or references (when given): palette, type, radius and density match side by side. Measure, do not eyeball: run `palette.py <image> --rows x0-x1` on the source and on the prototype screenshot (same width and scale, same x range); key blocks (title, controls, list rows, gaps) should line up within 4px. In testing, eyeballing missed 8px gaps and 2px text sizes that this caught.
 12. Would a design lead accept this as a first-pass prototype without saying “it looks like a template”? If not, name what breaks it and fix that.

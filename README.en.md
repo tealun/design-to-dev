@@ -12,6 +12,8 @@ design-to-dev is an Agent Skill for people who know design but not much code. Gi
 | `design-tokens/` | Your design rules — colors, type, sizes, spacing, radius, shadows, component states — as `tokens.css` (CSS variables) and `tokens.json` (W3C format) |
 | `HANDOFF.md` | The handoff: pages, flow diagram, components, interactions, open questions |
 
+![Readlog example: shelf, book detail, add a book](docs/images/readlog.png)
+
 Every key element carries a level: **Fixed** (must match), **Indicative** (may be adjusted), **TBD** (the developer or team decides). Press `Shift+A` in the prototype to see them.
 
 ## Who it's for
@@ -24,9 +26,9 @@ No coding and no Node.js needed; the prototype needs only a browser.
 
 ## How it works
 
-1. **Understand the intent.** Reads all your material, then asks at most five questions (pages, core flow, users and devices, who receives the result, what must match), each with a suggested answer — reply "ok" to accept.
+1. **Understand the intent.** Reads all your material, then asks at most five questions (pages and core flow, users and devices, who receives the result, the look, what must match), each with a suggested answer — reply "ok" to accept. The look question is always asked: share your VI / brand guide and 2–3 visual references you like; without them, pick a direction: refined minimal (default), editorial or warm handmade.
 2. **Extract the design rules.** Tokens from brand guides, Figma variables or screenshots, each with its source and level; a bundled script reads exact colors and the scale factor from PNG screenshots, and measured sizes are marked Indicative.
-3. **Build the prototype.** Plain HTML/CSS/JS, no build step. The "Prototype tools" button switches pages and states, simulates a failed request, and resets the data.
+3. **Build the prototype.** Plain HTML/CSS/JS, no build step. The "Prototype tools" button switches pages and states, simulates a failed request, and resets the data. Each screenshot is then checked against a 12-point visual QA list (hierarchy, one accent, hairline surfaces, designed placeholders and states, …); with a source design, positions are measured with a script rather than judged by eye.
 4. **Mark every item.** Fixed / Indicative / TBD on the elements; every TBD becomes an open question in the handoff.
 5. **Write HANDOFF.md**, including a Mermaid flow diagram.
 6. **Close in one of two modes:**

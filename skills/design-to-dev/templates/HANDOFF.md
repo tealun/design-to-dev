@@ -65,6 +65,10 @@ flowchart LR
 | 字体 Type | {{family, scale}} | 【示意】 |
 | 间距 Space | {{4px base}} | 【示意】 |
 
+视觉方向 Visual direction：{{VI / 参考 references / 预设 preset}}；视觉自查 Visual QA：{{12/12}}
+
+对比度 Contrast（`palette.py --contrast` 计算 computed）：{{正文/背景 body on page 13.8:1；…}}
+
 ## 6. 标注等级 Spec levels
 
 - 【确定】Fixed：必须按设计还原。Must match the design.

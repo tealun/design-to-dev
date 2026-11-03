@@ -99,6 +99,8 @@ flowchart LR
 | 阴影 Shadow | 极轻的纸面阴影；封面单独一档 | 【示意】 |
 | 尺寸 Size | 控件 44px；通栏主按钮 48px；内容最宽 480px | 【确定】 |
 
+视觉方向 Visual direction：现代精致极简预设 + 品牌规范；视觉自查 Visual QA：12/12（第 10 项修正：数字输入框隐藏浏览器默认的增减按钮）。
+
 对比度 Contrast（`palette.py --contrast` 计算）：Ink/Paper 13.76:1；二级文字/Paper 8.23:1；三级文字/Paper 5.02:1、/表面 5.28:1；白字/Moss 4.96:1；Ink/琥珀封面 8.98:1；白字/陶土封面 4.89:1。均达到 WCAG AA。
 
 ## 6. 标注等级 Spec levels

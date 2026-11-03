@@ -78,5 +78,28 @@ class ModeBBrief(ExampleOutput):
         self.assertEqual(check.returncode, 0, check.stdout)
 
 
+class RawColorCheck(ExampleOutput):
+    """F-06: ids, anchors and spec notes are not raw colors; real colors in code still are."""
+
+    def pages(self) -> Path:
+        return self.out / "prototype" / "pages.js"
+
+    def append(self, text: str) -> None:
+        with self.pages().open("a", encoding="utf-8") as f:
+            f.write(text)
+
+    def test_ids_anchors_and_notes_pass(self) -> None:
+        self.append("\nvar probe = document.querySelector('#bad'); var link = '<a href=\"#add\">x</a>';\n"
+                    "var note = '<p data-spec=\"tbd\" data-spec-note=\"Reference grey #8f8f8f fails AA\">x</p>';\n")
+        check = run("check_output.py", self.out)
+        self.assertEqual(check.returncode, 0, check.stdout)
+
+    def test_inline_style_color_still_fails(self) -> None:
+        self.append("\nvar bad = '<p style=\"color:#ff0000\">x</p>';\n")
+        check = run("check_output.py", self.out)
+        self.assertNotEqual(check.returncode, 0, check.stdout)
+        self.assertIn("#ff0000", check.stdout)
+
+
 if __name__ == "__main__":
     unittest.main()

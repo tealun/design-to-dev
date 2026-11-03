@@ -6,6 +6,8 @@ Usage:
     python3 palette.py shot.png --top 24           # more colors
     python3 palette.py shot.png --at 200,700 36,412  # colors at image pixel coordinates
     python3 palette.py --contrast "#ffffff" "#1f883d"  # contrast ratio and WCAG AA result
+    python3 palette.py shot.png --rows 560-880       # vertical position and height of each block in that x range,
+                                                     # in 1x points: compare the source design with the prototype
 
 PNG only (8-bit RGB, RGBA, gray, gray+alpha or palette; not interlaced). For JPEG or other formats,
 export a PNG or estimate visually and mark values Indicative. Python 3 standard library only.
@@ -102,6 +104,34 @@ def contrast(a: str, b: str) -> float:
     return (hi + 0.05) / (lo + 0.05)
 
 
+def scale_factor(width: int) -> int:
+    for factor in (3, 2):
+        if any(abs(width / factor - device) <= 1 for device, _ in DEVICE_WIDTHS):
+            return factor
+    return 1
+
+
+def print_rows(width: int, height: int, pixels: list[tuple[int, int, int]], span: str) -> None:
+    """Blocks of rows whose pixels differ from the background inside x range span ('x0-x1', image pixels)."""
+    x0, x1 = (int(v) for v in span.split("-"))
+    x0, x1 = max(0, x0), min(width, x1)
+    background = Counter(pixels).most_common(1)[0][0]
+    factor = scale_factor(width)
+
+    def differs(rgb: tuple[int, int, int]) -> bool:
+        return sum(abs(a - b) for a, b in zip(rgb, background)) > 12  # white surfaces on #fafafa still count
+
+    print(f"  blocks in x {x0}-{x1} px, background {hexcolor(background)}, shown at 1x (scale {factor}x): top, height")
+    start = None
+    for y in range(height + 1):
+        hit = y < height and any(differs(pixels[y * width + x]) for x in range(x0, x1, 2))
+        if hit and start is None:
+            start = y
+        elif not hit and start is not None:
+            print(f"  {start / factor:7.1f}  {(y - start) / factor:6.1f}")
+            start = None
+
+
 def scale_hint(width: int) -> str:
     hints = []
     for factor in (1, 2, 3):
@@ -123,6 +153,9 @@ def main(argv: list[str]) -> int:
     path = Path(argv[0])
     width, height, pixels = decode_png(path)
     print(f"{path.name}: {width}x{height} px; likely scale: {scale_hint(width)}")
+    if "--rows" in argv:
+        print_rows(width, height, pixels, argv[argv.index("--rows") + 1])
+        return 0
     if "--at" in argv:
         for point in argv[argv.index("--at") + 1:]:
             x, y = (int(v) for v in point.split(","))

@@ -53,6 +53,15 @@ def read(path: Path) -> str:
     return path.read_text(encoding="utf-8") if path.is_file() else ""
 
 
+def strip_non_color_hashes(text: str) -> str:
+    """Remove places where '#abc' is not a color: spec notes, href anchors, id selectors, comments."""
+    text = re.sub(r"/\*.*?\*/|//[^\n]*|<!--.*?-->", "", text, flags=re.S)
+    text = re.sub(r"data-spec-note=\\?([\"']).*?\\?\1", "", text, flags=re.S)
+    text = re.sub(r"href=\\?[\"']#[^\"'\\]*", "href=", text)
+    text = re.sub(r"(querySelector(?:All)?|getElementById|closest)\(\s*['\"][^'\"]*['\"]", r"\1(", text)
+    return text
+
+
 def css_tokens(text: str) -> dict[str, str]:
     block = re.search(r":root\s*\{(.*?)\}", text, re.S)
     if not block:
@@ -166,6 +175,8 @@ def check_prototype(out: Path, entry: Path, default_stack: bool, tokens: set[str
         scan = text
         if path.suffix == ".css":
             scan = "".join(re.findall(r"\{([^{}]*)\}", re.sub(r"/\*.*?\*/", "", text, flags=re.S)))
+        else:
+            scan = strip_non_color_hashes(text)
         bad = HEX.findall(scan) + FUNC_COLOR.findall(scan)
         if bad:
             r.error(f"{rel}: raw colors {sorted(set(bad))[:5]}; use token variables")

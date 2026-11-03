@@ -42,7 +42,7 @@ Load the reference for the step you are on:
 - [references/prototype.md](references/prototype.md) — default stack, proto-kit API, pages, states, fake data, when to use another stack.
 - [references/annotation-and-handoff.md](references/annotation-and-handoff.md) — marking levels, HANDOFF.md, the two closing modes.
 
-Templates in [templates/](templates/) are starting points to copy into the output folder, not files to edit in place.
+Templates in [templates/](templates/) are starting points to copy into the output folder, not files to edit in place. In commands below, `<skill-dir>` is the folder that contains this SKILL.md, and `<output>` is the output folder.
 
 ## Workflow
 
@@ -93,14 +93,14 @@ In mode B, write `PLANNER_BRIEF.md` first (see the closing modes below). Then ru
 python3 <skill-dir>/scripts/check_output.py <output>
 ```
 
-If you can drive a browser, open `prototype/index.html` at the design's width, walk the core flow and each state, and put each screenshot side by side with its source design. Fix visible differences in anything marked Fixed (color, weight, size, order); a page that renders blank or unstyled is a failure even when the checker passes. Then run the visual QA checklist in the visual direction reference on every screenshot and fix each failed item; without a browser, review the CSS against the same checklist and say the visual check was not seen.
+If you can drive a browser, open `prototype/index.html` at the design's width, walk the core flow and each state, and put each screenshot side by side with its source design. Fix visible differences in anything marked Fixed (color, weight, size, order); a page that renders blank or unstyled is a failure even when the checker passes. Then run the visual QA checklist in the visual direction reference on every screenshot and fix each failed item; when there is a source design, measure both screenshots with `palette.py --rows` instead of judging by eye; without a browser, review the CSS against the same checklist and say the visual check was not seen.
 
 Then close in the chosen mode:
 
 - **Mode A, hand to a developer:** make HANDOFF.md self-explanatory, put open questions first in the summary, and tell the designer what to send (the whole output folder).
 - **Mode B, continue development:** also write `PLANNER_BRIEF.md` from [templates/PLANNER_BRIEF.md](templates/PLANNER_BRIEF.md) and tell the designer to start the next stage with it, for example “use planner with PLANNER_BRIEF.md”.
 
-Close with plain-language results for the designer: how to open the prototype, what to click to see the core flow and the states, how to show the spec marks (the Spec button or Shift+A), the open questions that need their decision, the visual direction used and the visual QA result, and the checker result.
+Close with plain-language results for the designer: how to open the prototype, what to click to see the core flow and the states, how to show the spec marks (the Spec checkbox under “Prototype tools”, or Shift+A), the open questions that need their decision, the visual direction used and the visual QA result, and the checker result.
 
 ## Rules
 
