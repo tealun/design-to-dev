@@ -1,69 +1,118 @@
 # Visual direction and quality bar
 
-A prototype that works but looks like an unstyled admin panel fails the designer. Read this before building styles, and run the checklist at the end before closing.
+A prototype that works but looks like an unstyled admin panel or “AI-generated template” fails the designer. Read this before building styles. Parts of the method (direction lock, direction menu, four pillars, atmosphere, orchestrated motion, anti-slop list, benchmarks) are adapted from the frontend-design skill by zxh.
 
-## Where the look comes from
+Two modes:
 
-In priority order:
+- **Fidelity mode** — the designer gave mockups or a VI. Match them; their values win. Use this reference only for parts the design does not cover (states, placeholders, motion, gaps).
+- **Direction mode** — there is only an idea, a brief or loose references. Lock a direction (below) and design with intent.
 
-1. **The designer's VI / brand guide**: colors, fonts, logo rules, tone. Its values are Fixed.
-2. **The designer's own mockups** (screenshots, Figma): match them; sampled colors may be Fixed, measured sizes are Indicative.
-3. **Visual references** the designer likes (2–3 products, screenshots, mood words): borrow their type scale, density, radius, color restraint, never their brand names, logos or illustrations.
-4. **A direction preset** below, chosen by the designer when 1–3 are missing. Default: Refined minimal.
+## 1. Where the look comes from
 
-Ask for 1 and 3 in the question round (see intake). Never invent a brand personality silently: if you choose, say which preset you used and mark its values Indicative.
+In priority order: (1) the designer's VI / brand guide, values Fixed; (2) their own mockups, sampled colors may be Fixed, measured sizes Indicative; (3) visual references they like, borrow type scale, density, radius and color restraint, never names, logos or illustrations; (4) a direction from the menu, chosen by the designer. Never pick a personality silently: if you choose, say so and mark it Indicative.
 
-## Principles (checkable)
+## 2. Direction lock (write it before any CSS)
+
+Write one short paragraph in the understanding card, and later in HANDOFF section “Design direction”:
+
+```text
+Purpose: what the product does, for whom, in what moment of their day.
+Tone: one direction from the menu, in one sentence of concrete art direction.
+Type: display face + body face (names, weights, sizes), and why they fit.
+Color: dominant color, supporting neutrals, one sharp accent, with hex values.
+Memorable thing: the one detail someone remembers after closing the prototype.
+```
+
+Write it as art direction, never as adjectives: “Noto Serif SC Bold 40px, −0.02em, ink on warm paper, moss as the only accent; the shelf shows real-looking spines” — not “modern, clean and elegant”.
+
+## 3. Direction menu
+
+Offer the three quick picks first; show the full menu when the designer wants more choice. Pick one and stay inside it; do not blend three into mush.
+
+| Direction | Keywords | Fits | Quick pick |
+| --- | --- | --- | --- |
+| Refined minimal | precise spacing, generous air, one accent, hairlines | tools, productivity, professional services | ✓ default |
+| Editorial / magazine | serif display, grid and rules, large type contrast | content, reading, media | ✓ |
+| Warm handmade / organic | soft curves, earth tones, paper texture | wellness, food, lifestyle, journaling | ✓ |
+| Luxury / refined | serif titles, restrained metallic accent, wide margins | premium consumer, hospitality | |
+| Playful / toy-like | rounded shapes, bright blocks, springy motion | kids, social, casual consumer apps | |
+| Brutalist / raw | exposed borders, mono type, thick black rules | studios, indie products | |
+| Retro-futuristic | mono fonts, neon on dark, scanlines | developer tools, hardware | |
+| Industrial / utilitarian | dense data, tabular numbers, instrument feel | ops, monitoring, B2B consoles | |
+| Maximalist | layering, clashing colors, high density | campaigns, entertainment, events | |
+
+Starting tokens for the three quick picks:
+
+| Token | Refined minimal | Editorial | Warm handmade |
+| --- | --- | --- | --- |
+| Page / surface | `#fafafa` / `#ffffff` | `#faf9f6` / `#ffffff` | `#fbf7f0` / `#fffdf9` |
+| Border | `#e4e4e7` hairline | `#e7e2d9`, 1px rules | `#ece3d3` |
+| Text 1 / 2 / 3 | `#18181b` / `#52525b` / `#6b6b73` | `#1c1b19` / `#55524c` / `#6f6b64` | `#2b2722` / `#5f584e` / `#74695c` |
+| Accent | one cool accent; primary button near-black | one deep accent, e.g. `#9f1d20` | one warm accent, e.g. `#c2643d` |
+| Display / body face (Google Fonts) | Geist or Inter Tight display, Geist body; Chinese: Noto Sans SC | Fraunces or Instrument Serif display, Source Serif 4 body; Chinese: Noto Serif SC | Bricolage Grotesque or Fraunces soft display, Nunito Sans body; Chinese: LXGW WenKai / Noto Serif SC |
+| Radius | 6 / 8 / 12 / 16 | 2 / 4 / 6 | 10 / 14 / 20 |
+| Shadow | 3 levels, Y 2 / 8 / 24px, low opacity | none; use rules | soft, warm-tinted |
+
+## 4. The four pillars
+
+| Pillar | Rule |
+| --- | --- |
+| Typography | The fastest differentiator. Pair a distinctive display face with a refined body face and bundle both with `fetch_fonts.py` (subset to the characters used, so it stays small and offline). A system font or Inter/Roboto/Arial is never the display face unless the VI says so. Display ≥ 32px on phone, ≥ 48px on desktop heroes, tracking −0.02 to −0.04em, line height 1.0–1.15. Body 14–17px, line height 1.5–1.7, 45–75 characters per line (Chinese 28–40). Text weights: three at most, plus one display weight. Tabular numbers for data. |
+| Color & theme | Dominant color about 60%, supporting neutrals about 30%, one sharp accent about 10%, all as CSS variables. The accent marks the primary action, selection, progress and links only — never decoration or data. Choose light or dark base on purpose. |
+| Motion | One orchestrated page-load sequence beats scattered micro-interactions: 3–6 groups revealed with 60–120ms stagger (proto-kit adds `.pk-enter` on navigation; see templates/styles.css). Durations: micro 150–200ms, standard 300–400ms, scene 600–800ms; easing `cubic-bezier(0.16, 1, 0.3, 1)`. Movement uses transform and opacity; color and shadow transitions are fine for states. Everything stops under `prefers-reduced-motion`. |
+| Composition | Decide air or density, then commit. In app screens keep lists and forms regular and scannable; spend boldness on the header, the hero number, empty states and the one memorable moment (asymmetry, overlap, a dramatic type scale). |
+
+## 5. Atmosphere, not flat color
+
+Pick one or two treatments that match the direction; all must work offline:
+
+- Grain / paper: an inline SVG `feTurbulence` noise as a `data:` URI on `body::before`, opacity 0.03–0.08 (example in the Readlog styles).
+- Gradient mesh: two or three large `radial-gradient`s in the page background, low saturation.
+- Rules and frames: 1px rules, section numbers, a deliberate border frame for editorial directions.
+- Depth: one dramatic shadow on the memorable element only.
+
+Never stack effects to look busy. Restraint is also a direction.
+
+## 6. Anti-slop list (fix every hit)
+
+- System or Inter/Roboto/Arial as the display face; no bundled fonts.
+- Purple-to-blue gradient on white; evenly distributed rainbow palette; accent used everywhere.
+- The predictable layout: centered hero + three equal cards; every block a white card with the same shadow; card inside card.
+- Emoji as icons; mixed icon styles; grey boxes labelled “image”; a single letter in a flat saturated square as a placeholder.
+- Default browser controls (number spinners, unstyled selects), default blue links in a styled UI.
+- Everything the same size and weight; no type contrast; centered long text.
+- Motion that is either absent or scattered on every element; no reduced-motion handling.
+- Looking like the previous prototype you made: every product gets its own direction.
+
+## 7. Principles (checkable)
 
 | Area | Rule |
 | --- | --- |
-| Hierarchy | Build it with size, weight and color, not with boxes. One focal point per screen: the main content or the primary action. |
-| Type | One sans family (plus at most one display family from the brand). 2–3 weights (400/500/600). Body 14–16px, line height 1.5. Titles 24–32px, line height 1.2–1.25, letter spacing −0.01 to −0.02em. Labels and meta 12–13px. Numbers use `font-variant-numeric: tabular-nums`. |
-| Text color | At most three: primary, secondary, tertiary. Never pure black on pure white for large areas of text; use near-black (#18181b-like). |
-| Contrast | WCAG AA for all text (`palette.py --contrast`). When the source design itself fails (common for links and footer greys), use the nearest passing shade, keep the original value in the token comment, and add an open question. |
-| Color | Neutrals do 90% of the work. One accent, used only for the primary action, selection, progress and links. No large saturated fills except the one primary button. |
-| Spacing | 4px base. Items inside a group 8–12px apart, groups 24–32px apart, page edges 16–24px (phone) or 32px+ (desktop). Section spacing is always larger than item spacing. |
-| Surfaces | One elevation level per region. 1px hairline borders first, very soft shadows second, never a heavy border and a heavy shadow together. No card inside a card: inside a card use dividers or spacing. |
-| Radius | One family: controls 6–8px, cards 10–12px, sheets/dialogs 14–16px, pills full. Nested radius = outer radius − padding. |
-| Controls | Buttons and inputs in the same row share height (36–40px desktop, 44px+ phone) and radius. Primary, secondary and ghost buttons only. Visible soft focus ring. No unstyled browser controls. |
-| Lists | Prefer one surface with dividers over a stack of separate cards. Leading visual (icon, avatar, cover) aligned on a fixed column; meta right-aligned and tertiary. |
-| Placeholders | Must look intentional: tinted gradient covers with real text, initials in a soft circle, a quiet line icon. Never a single letter in a flat saturated square or a grey box labelled “image”. |
-| Empty / loading / error | Designed as carefully as the default state: a line icon in a soft circle, one short sentence, one action. Skeletons match the real layout's shapes. |
-| Icons | One set style: 16–20px, 1.5px stroke line icons drawn inline as SVG with `stroke="currentColor"`. |
-| Motion | 120–200ms, ease-out, opacity and transform only, disabled under `prefers-reduced-motion`. |
-| Text layout | Long text left-aligned, 45–75 characters per line. Truncate with ellipsis, never overflow. |
+| Hierarchy | Built with size, weight and color, not boxes. One focal point per screen. |
+| Text color | Three at most (primary, secondary, tertiary); near-black, not pure black, for large areas. |
+| Contrast | WCAG AA for all text (`palette.py --contrast`). When the source design fails, use the nearest passing shade, keep the original in the token comment, add an open question. |
+| Spacing | 4px scale (1px and 2px allowed for hairline offsets). Section gaps larger than item gaps. |
+| Surfaces | One elevation per region; hairline first, soft shadow second; no card inside a card. |
+| Radius | One family; nested radius = outer radius − padding. |
+| Controls | Same height and radius in a row (36–40px desktop, 44px+ touch); primary / secondary / ghost only; visible focus ring. |
+| Placeholders | Intentional: tinted covers with real text, initials in a soft neutral circle, a quiet line icon labelled with what belongs there. |
+| States | Empty, loading, error designed with the same care as the default. Skeletons match real shapes. |
+| Icons | One style: 16–20px line icons, 1.5px stroke, inline SVG with `currentColor`. |
+| Minimum size | Readable text ≥ 12px. Decorative text (cover texture) may be smaller if marked `/* decorative: … */` and `aria-hidden`. |
 
-## Direction presets
+## 8. Visual QA
 
-Starting tokens for each direction; adapt to the product. All three keep the principles above.
+Two parts. Do not self-grade the first part: the script grades it.
 
-| Token | Refined minimal (default) | Editorial | Warm handmade |
-| --- | --- | --- | --- |
-| Feel | Linear / Things: precise, quiet, dense but airy | Independent magazine: typographic, generous, rules and serif display | Notebook: soft, friendly, rounded, tactile |
-| Background / surface | `#ffffff` / `#fafafa`, sunken `#f4f4f5` | `#faf9f6` / `#ffffff` | `#fbf7f0` / `#fffdf8` |
-| Border | `#e4e4e7` hairline | `#e7e2d9`, 1px rules between sections | `#ece3d3`, softer |
-| Text 1 / 2 / 3 | `#18181b` / `#52525b` / `#71717a` | `#1c1b19` / `#55524c` / `#7a766e` | `#2b2722` / `#6b6459` / `#857d70` |
-| Accent | one cool accent, e.g. `#4f46e5`; primary button near-black `#18181b` | one deep accent, e.g. `#9f1d20` | one warm accent, e.g. `#c2643d` |
-| Type | system sans; titles 600, −0.02em | serif display for titles (system serif stack), sans body | rounded-feeling system sans; titles 600 |
-| Radius | 6 / 8 / 12 / 16 | 2 / 4 / 6 (nearly square) | 10 / 14 / 20 |
-| Shadow | `0 1px 2px rgba(24,24,27,.05)`; popovers `0 8px 24px rgba(24,24,27,.08)` | none; use rules | `0 2px 8px rgba(43,39,34,.06)` |
-| Density | controls 36–40px, compact lists | spacious, large titles 32–40px | controls 44px, generous padding |
+**A. Objective, run by `check_output.py`** (warnings must be fixed or explained in the close): text below 12px, spacing off the 4px scale, more than 3 text weights + 1 display weight, animation without reduced-motion handling, a system/default display face, missing bundled font files. Contrast comes from `palette.py --contrast`; positions against a source come from `palette.py --rows` (blocks within 4px).
 
-The template files implement Refined minimal. For another preset, change tokens first, then only the component rules that the table says differ.
+**B. Judgement, from the screenshots of every page and state** — answer each with what you saw, not “pass”:
 
-## Visual QA checklist
-
-Run on the screenshots of every page and state, at the design's width, before closing. Fix every “no”, then list the results in the close (for example “Visual QA 12/12”).
-
-1. Squint test: one clear focal point per screen.
-2. One accent color, used only for primary action, selection, progress and links.
-3. At most three text colors and three weights on any screen.
-4. No card inside a card; no element with both a heavy border and a heavy shadow.
-5. All spacing from the scale; sibling gaps equal; section gaps larger than item gaps.
-6. Controls in a row share height and radius; focus ring visible.
-7. Placeholders and empty, loading and error states look designed, not default.
-8. Titles have tightened letter spacing; numbers are tabular; nothing overflows.
-9. Icons share size and stroke; no emoji used as icons.
-10. Nothing looks like an unstyled browser default.
-11. Against the VI, mockups or references (when given): palette, type, radius and density match side by side. Measure, do not eyeball: run `palette.py <image> --rows x0-x1` on the source and on the prototype screenshot (same width and scale, same x range); key blocks (title, controls, list rows, gaps) should line up within 4px. In testing, eyeballing missed 8px gaps and 2px text sizes that this caught.
-12. Would a design lead accept this as a first-pass prototype without saying “it looks like a template”? If not, name what breaks it and fix that.
+1. Squint test: is there one focal point per screen? Name it.
+2. Which element is the memorable thing from the direction lock, and is it visible on the first screen?
+3. Is the accent only on action, selection, progress and links? List where it appears.
+4. Any anti-slop hit (section 6)? List or say none.
+5. Do placeholders and empty, loading, error states look designed?
+6. Does the page-load sequence feel orchestrated (one sequence, not everything at once)?
+7. Fidelity mode: palette, type, radius and density match the source side by side.
+8. Would a design lead say “it looks like a template”? Name what breaks it, fix it, and leave the final call to the designer: report “awaiting designer review”, never a score.

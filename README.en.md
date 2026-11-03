@@ -97,6 +97,10 @@ scripts/build.py        platform checks and packaging
 design-to-dev.zip       WorkBuddy upload package (CI keeps it in sync)
 ```
 
+## Credits
+
+Parts of the visual method (direction lock, direction menu, four pillars, anti-slop list) are adapted from the frontend-design skill by zxh.
+
 ## License
 
 MIT

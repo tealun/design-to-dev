@@ -101,5 +101,60 @@ class RawColorCheck(ExampleOutput):
         self.assertIn("#ff0000", check.stdout)
 
 
+class VisualLint(ExampleOutput):
+    """R-6: objective visual QA items are checked by the script, not self-graded."""
+
+    def styles(self) -> Path:
+        return self.out / "prototype" / "styles.css"
+
+    def add_css(self, css: str) -> None:
+        with self.styles().open("a", encoding="utf-8") as f:
+            f.write("\n" + css + "\n")
+
+    def warnings(self) -> str:
+        return "\n".join(l for l in run("check_output.py", self.out).stdout.splitlines() if l.startswith("WARN"))
+
+    def test_example_has_no_visual_warnings(self) -> None:
+        self.assertEqual(self.warnings(), "")
+
+    def test_tiny_text_is_flagged(self) -> None:
+        self.add_css(".x { font-size: 9px; }")
+        self.assertIn("9px", self.warnings())
+
+    def test_decorative_tiny_text_is_allowed(self) -> None:
+        self.add_css(".x { font-size: 9px; } /* decorative: cover texture */")
+        self.assertEqual(self.warnings(), "")
+
+    def test_off_scale_spacing_is_flagged(self) -> None:
+        self.add_css(".x { padding: 6px 5px; }")
+        self.assertIn("off the 4px scale", self.warnings())
+
+    def test_too_many_weights_is_flagged(self) -> None:
+        self.add_css(".a { font-weight: 300; } .b { font-weight: 800; } .c { font-weight: 900; }")
+        self.assertIn("font weights", self.warnings())
+
+    def test_animation_without_reduced_motion_is_flagged(self) -> None:
+        text = self.styles().read_text(encoding="utf-8").replace("prefers-reduced-motion", "prefers-color-scheme")
+        self.styles().write_text(text, encoding="utf-8")
+        self.assertIn("prefers-reduced-motion", self.warnings())
+
+    def test_system_display_font_is_flagged(self) -> None:
+        css = self.out / "design-tokens" / "tokens.css"
+        text = css.read_text(encoding="utf-8")
+        import re
+        text = re.sub(r"--font-family-display: [^;]+;", "--font-family-display: system-ui, sans-serif;", text)
+        css.write_text(text, encoding="utf-8")
+        run("tokens_json.py", css)
+        self.assertIn("display", self.warnings())
+
+    def test_missing_font_file_is_an_error(self) -> None:
+        fonts = sorted((self.out / "prototype" / "fonts").glob("*.woff2"))
+        self.assertTrue(fonts, "example should bundle its fonts")
+        fonts[0].unlink()
+        check = run("check_output.py", self.out)
+        self.assertNotEqual(check.returncode, 0, check.stdout)
+        self.assertIn(fonts[0].name, check.stdout)
+
+
 if __name__ == "__main__":
     unittest.main()

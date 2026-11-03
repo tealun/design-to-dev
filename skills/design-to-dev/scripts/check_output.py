@@ -192,6 +192,54 @@ def check_prototype(out: Path, entry: Path, default_stack: bool, tokens: set[str
     return routes, marks
 
 
+SYSTEM_FONTS = {"system-ui", "-apple-system", "blinkmacsystemfont", "sf pro text", "sf pro display", "segoe ui", "roboto",
+                "arial", "helvetica", "helvetica neue", "inter", "pingfang sc", "hiragino sans gb", "microsoft yahei",
+                "sans-serif", "serif", "ui-sans-serif", "ui-serif"}
+SPACING_PROPS = re.compile(r"(?<![\w-])(margin|padding|gap|row-gap|column-gap|inset|top|right|bottom|left)(-[a-z]+)?\s*:\s*([^;}]+)")
+
+
+def check_visual(out: Path, entry: Path, tokens_css: str, r: Report) -> None:
+    """Objective items of the visual QA checklist (references/visual-direction.md). Warnings, not errors,
+    because a reason may exist; the close must fix or explain each one. Mark a deliberate exception on
+    the same line with a comment such as /* decorative: … */ or /* off-scale: … */."""
+    token_values = dict(re.findall(r"--([a-z0-9-]+)\s*:\s*([^;]+);", tokens_css))
+    css_files = [p for p in sorted(entry.rglob("*.css")) if "fonts" not in p.parts and "node_modules" not in p.parts]
+    weights: set[str] = set()
+    animated = reduced = False
+    for path in css_files:
+        rel = path.relative_to(out).as_posix()
+        for n, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+            excused = re.search(r"/\*\s*(decorative|off-scale)\b", line)
+            code = re.sub(r"/\*.*?\*/", "", line)
+            for size in re.findall(r"font-size\s*:\s*(\d+(?:\.\d+)?)px", code):
+                if float(size) < 12 and not excused:
+                    r.warn(f"{rel}:{n}: font-size {size}px is below the 12px minimum for readable text")
+            for prop, _, value in SPACING_PROPS.findall(code):
+                bad = [v for v in re.findall(r"(?<![\w.-])(\d+(?:\.\d+)?)px", value) if float(v) not in (0, 1, 2) and float(v) % 4]
+                if bad and not excused:
+                    r.warn(f"{rel}:{n}: {prop} uses {', '.join(b + 'px' for b in bad)}, off the 4px scale")
+            for w in re.findall(r"font-weight\s*:\s*([^;}\s]+)", code):
+                m = re.match(r"var\(--([a-z0-9-]+)\)", w)
+                weights.add(token_values.get(m.group(1), w).strip() if m else w)
+            animated |= bool(re.search(r"\b(animation|transition)\s*:", code))
+            reduced |= "prefers-reduced-motion" in code
+    weights.discard("inherit")
+    if len(weights) > 4:
+        r.warn(f"{len(weights)} font weights in use ({', '.join(sorted(weights))}); keep to 3 for text plus 1 for display")
+    if animated and not reduced:
+        r.warn("styles animate but never handle prefers-reduced-motion")
+    display = token_values.get("font-family-display") or token_values.get("font-family-base", "")
+    first = display.split(",")[0].strip().strip("'\"").lower()
+    if first in SYSTEM_FONTS:
+        r.warn(f"display font '{first}' is a system/default face; choose a distinctive face for the direction and bundle it "
+               "with fetch_fonts.py, unless the VI specifies a system font")
+    fonts_css = entry / "fonts" / "fonts.css"
+    if fonts_css.is_file():
+        for src in re.findall(r"url\(([^)]+)\)", fonts_css.read_text(encoding="utf-8")):
+            if not (fonts_css.parent / src.strip("'\"")).is_file():
+                r.error(f"prototype/fonts/fonts.css points to missing font file {src}")
+
+
 def check_handoff(out: Path, routes: list[str], marks: dict[str, int], r: Report) -> None:
     text = read(out / "HANDOFF.md")
     if not text:
@@ -265,6 +313,7 @@ def main() -> int:
     entry = args.prototype_entry or out / "prototype"
     tokens = check_tokens(out, r)
     routes, marks = check_prototype(out, entry, default_stack, tokens, r)
+    check_visual(out, entry, read(out / "design-tokens" / "tokens.css"), r)
     check_handoff(out, routes, marks, r)
     check_brief(out, args.mode, r)
     for n in r.notes:

@@ -1,0 +1,120 @@
+#!/usr/bin/env python3
+"""Bundle real web fonts into a prototype so it looks designed and still runs offline from file://.
+
+Usage:
+    python3 fetch_fonts.py <output>/prototype "Noto Serif SC:700" "Noto Sans SC:400,500"
+    python3 fetch_fonts.py <output>/prototype "Geist:400,500,600" --latin
+
+Each argument is "Family:weights" as named on Google Fonts (open licenses: OFL / Apache).
+By default the font is subset to the characters actually used in the prototype's .html/.js files
+(Google Fonts `text=` subsetting), plus ASCII, which keeps Chinese and Japanese fonts small.
+--latin downloads the full Latin subset instead (for typed input in Latin scripts).
+
+Pass every family in one call: each run replaces prototype/fonts/ (old .woff2 files and fonts.css).
+Writes prototype/fonts/*.woff2 and prototype/fonts/fonts.css (@font-face rules with local URLs).
+index.html loads fonts/fonts.css; tokens name the families with system fallbacks after them.
+Without network access the script exits with an error: keep the system fallback and record the
+font as TBD in HANDOFF. Re-run after copy changes, because new characters are not in the subset.
+Python 3 standard library only; honours HTTPS_PROXY and SSL_CERT_FILE.
+"""
+from __future__ import annotations
+
+import hashlib
+import os
+import re
+import ssl
+import sys
+import urllib.parse
+import urllib.request
+from pathlib import Path
+
+CSS_API = "https://fonts.googleapis.com/css2"
+# A modern browser user agent makes the API answer with woff2.
+UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36"
+TEXT_SUFFIXES = {".html", ".js"}
+
+
+def context() -> ssl.SSLContext:
+    cafile = os.environ.get("SSL_CERT_FILE") or ("/root/.ccr/ca-bundle.crt" if Path("/root/.ccr/ca-bundle.crt").is_file() else None)
+    return ssl.create_default_context(cafile=cafile)
+
+
+def get(url: str) -> bytes:
+    req = urllib.request.Request(url, headers={"User-Agent": UA})
+    with urllib.request.urlopen(req, context=context(), timeout=60) as resp:
+        return resp.read()
+
+
+def used_characters(proto: Path) -> str:
+    chars = set(chr(c) for c in range(0x20, 0x7F))
+    for path in proto.rglob("*"):
+        if path.suffix in TEXT_SUFFIXES and path.is_file() and "fonts" not in path.parts:
+            chars.update(path.read_text(encoding="utf-8"))
+    return "".join(sorted(c for c in chars if c.isprintable() and not c.isspace() or c == " "))
+
+
+def fetch(proto: Path, spec: str, latin: bool, text: str) -> list[str]:
+    family, _, weights = spec.partition(":")
+    weights = [w.strip() for w in (weights or "400").split(",") if w.strip()]
+    query = {"family": f"{family.strip()}:wght@{';'.join(sorted(weights, key=int))}", "display": "swap"}
+    if not latin:
+        query["text"] = text
+    css = get(CSS_API + "?" + urllib.parse.urlencode(query, safe=":@;")).decode("utf-8")
+    out_dir = proto / "fonts"
+    rules = []
+    # Each block may be labelled with its script subset, e.g. "/* latin */"; text= subsets carry no label.
+    for label, block in re.findall(r"(?:/\*\s*([\w-]+)\s*\*/\s*)?(@font-face\s*\{[^}]*\})", css):
+        if latin and label not in ("latin", "latin-ext"):
+            continue
+        url = re.search(r"url\((https://[^)]+)\)", block).group(1)
+        weight = re.search(r"font-weight:\s*(\d+)", block).group(1)
+        # Variable fonts return one file for several weights: name by URL so it is stored once.
+        name = f"{re.sub(r'[^a-z0-9]+', '-', family.lower()).strip('-')}-{hashlib.sha1(url.encode()).hexdigest()[:8]}.woff2"
+        if not (out_dir / name).is_file():
+            data = get(url)
+            if data[:4] != b"wOF2":
+                raise SystemExit(f"{family} {weight}: response is not a woff2 file")
+            (out_dir / name).write_bytes(data)
+            print(f"  {name}  {len(data) // 1024 or 1} KB")
+        rules.append(block.replace(url, name))
+    if not rules:
+        raise SystemExit(f"{family}: no font files returned; check the family name and weights on fonts.google.com")
+    return rules
+
+
+def main(argv: list[str]) -> int:
+    if len(argv) < 2 or argv[0] in {"-h", "--help"}:
+        print(__doc__)
+        return 0 if argv and argv[0] in {"-h", "--help"} else 2
+    proto = Path(argv[0])
+    if not (proto / "index.html").is_file():
+        raise SystemExit(f"{proto} has no index.html; pass the prototype folder")
+    latin = "--latin" in argv
+    specs = [a for a in argv[1:] if not a.startswith("--")]
+    (proto / "fonts").mkdir(exist_ok=True)
+    for old in (proto / "fonts").glob("*.woff2"):
+        old.unlink()
+    text = used_characters(proto)
+    print(f"{len(text)} characters used in the prototype")
+    rules: list[str] = []
+    try:
+        for spec in specs:
+            rules += fetch(proto, spec, latin, text)
+    except OSError as exc:
+        raise SystemExit(f"cannot reach Google Fonts ({exc}); keep system fonts and record the font as TBD")
+    header = "/* fonts.css — generated by fetch_fonts.py from Google Fonts (open licenses). Do not edit; re-run the script. */\n"
+    (proto / "fonts" / "fonts.css").write_text(header + "\n".join(rules) + "\n", encoding="utf-8")
+    index = proto / "index.html"
+    html = index.read_text(encoding="utf-8")
+    if "fonts/fonts.css" not in html:
+        # Fonts load first, so the token stylesheet can name the families.
+        html = re.sub(r"(\s*)(<link[^>]+tokens\.css[^>]*>)", r'\1<link rel="stylesheet" href="fonts/fonts.css">\1\2', html, count=1)
+        index.write_text(html, encoding="utf-8")
+        print("added fonts/fonts.css to index.html")
+    total = sum(p.stat().st_size for p in (proto / "fonts").glob("*.woff2"))
+    print(f"wrote fonts/fonts.css ({len(rules)} faces, {total // 1024} KB)")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

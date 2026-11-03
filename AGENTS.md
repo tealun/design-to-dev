@@ -12,4 +12,6 @@
 - 改了 `skills/design-to-dev/` 或 `workbuddy.yaml`：运行 `python3 scripts/build.py` 重新生成 `design-to-dev.zip` 并一起提交；CI 用 `--check` 拦截。
 - 改了技能行为或触发描述：同步更新 `SKILL.md` 的 `metadata.version`、`workbuddy.yaml` 的 `version`、`.claude-plugin/marketplace.json` 的 `version` 和 `CHANGELOG.md`（build.py 校验它们一致）。
 - 改了模板 `proto-kit.js`：同步复制到 `examples/readlog/output/prototype/`，并运行 `python3 skills/design-to-dev/scripts/check_output.py examples/readlog/output --mode B`。
+- 改了 Readlog 的文案或页面：运行 `python3 skills/design-to-dev/scripts/fetch_fonts.py examples/readlog/output/prototype "Noto Serif SC:700" "Noto Sans SC:400,500"` 重新生成字体子集。
+- 视觉自查不自评打分：客观项以 `check_output.py` 的警告为准，审美定稿由用户评审。
 - 发布到新平台之前，先把它的全部规则写进 `scripts/build.py`，本地通过后再上传。

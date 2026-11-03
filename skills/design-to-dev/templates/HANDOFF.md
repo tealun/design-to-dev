@@ -11,6 +11,10 @@
 | 设备 Devices | {{phone first / desktop / both}} |
 | 日期 Date | {{YYYY-MM-DD}} |
 
+## 设计方向 Design direction
+
+{{一段具体的美术指导 concrete art direction：用途 purpose；调性 tone；展示字体与正文字体 display and body faces；主色与强调色 dominant and accent；记忆点 the memorable thing。有设计稿时写“还原设计稿” fidelity mode}}
+
 ## 0. 怎么打开 How to open
 
 1. 双击 `prototype/index.html`，用浏览器打开即可，不需要安装任何东西。Double-click `prototype/index.html`.
@@ -65,7 +69,7 @@ flowchart LR
 | 字体 Type | {{family, scale}} | 【示意】 |
 | 间距 Space | {{4px base}} | 【示意】 |
 
-视觉方向 Visual direction：{{VI / 参考 references / 预设 preset}}；视觉自查 Visual QA：{{12/12}}
+视觉自查 Visual QA：A（脚本 script）{{0 条警告 / 每条的说明 warnings and reasons}}；B（截图观察 screenshots）{{焦点、记忆点、强调色位置、去 AI 味… focal point, memorable thing, accent use, slop hits}}；审美定稿 final call：待设计师评审 awaiting designer review
 
 对比度 Contrast（`palette.py --contrast` 计算 computed）：{{正文/背景 body on page 13.8:1；…}}
 

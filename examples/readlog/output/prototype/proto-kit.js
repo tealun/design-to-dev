@@ -9,6 +9,7 @@
  *   - spec marks:        elements with data-spec="fixed|indicative|tbd" and data-spec-note="…", shown with Shift+A
  *   - toast:             Proto.toast('Saved')
  *   - out of scope:      <a href="#" data-out> shows a "not in this prototype" toast instead of navigating
+ *   - page-load:         #app gets .pk-enter when the route changes, for a staggered entrance in styles.css
  * Replace routing, store and fake() with your real stack; keep the tokens and the page structure.
  */
 (function () {
@@ -53,6 +54,7 @@
   var routes = [];
   var options = { name: 'prototype', home: '/', lang: 'zh' };
   var failNext = false;
+  var lastPath = null;
   var specOn = false;
   var current = null;
 
@@ -201,6 +203,10 @@
     document.title = (def.title ? def.title + ' · ' : '') + options.name;
     root.innerHTML = def.render(ctx);
     if (def.mount) def.mount(root, ctx);
+    // Page-load sequence on navigation only: a refresh after saving must not replay it.
+    root.classList.remove('pk-enter');
+    if (loc.path !== lastPath) { void root.offsetWidth; root.classList.add('pk-enter'); }
+    lastPath = loc.path;
     window.scrollTo(0, 0);
     syncToolbar();
     drawSpecs();

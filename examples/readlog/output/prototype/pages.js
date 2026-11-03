@@ -27,10 +27,12 @@
   function eyebrowDate() { var d = new Date(); return (d.getMonth() + 1) + '月' + d.getDate() + '日 · 周' + WEEKDAYS[todayIndex()]; }
   function findBook(store, id) { return store.books.filter(function (b) { return b.id === id; })[0]; }
 
-  /* A placeholder cover that looks like a book: gradient, spine, real title. */
+  /* A placeholder cover that looks like a book: gradient, spine shadow, a band, and the title in the
+     brand serif. Small covers show the first character as decoration; large ones show the title. */
   function cover(book, size) {
+    var text = size === 'sm' ? book.title.charAt(0) : book.title;
     return '<span class="cover cover--' + esc(book.cover) + ' cover--' + size + '" aria-hidden="true">' +
-      '<span class="cover__title">' + esc(book.title) + '</span></span>';
+      '<span class="cover__band"></span><span class="cover__title">' + esc(text) + '</span></span>';
   }
   function progress(book, thick) {
     return '<span class="progress' + (thick ? ' progress--thick' : '') + '" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + percent(book) + '">' +
@@ -39,9 +41,9 @@
 
   /* Shared state views */
   function loadingView() {
-    var row = '<div class="skeleton-row"><div class="skeleton" style="width:40px;height:56px;border-radius:3px"></div>' +
+    var row = '<div class="skeleton-row"><div class="skeleton" style="width:44px;height:62px;border-radius:2px"></div>' +
       '<div style="flex:1;display:grid;gap:8px"><div class="skeleton" style="width:65%"></div><div class="skeleton" style="width:30%;height:12px"></div><div class="skeleton" style="height:4px"></div></div></div>';
-    return '<div class="surface" aria-busy="true" data-spec="indicative" data-spec-note="骨架屏与列表同形，数据到达时布局不跳动">' + row + row + row + '</div>';
+    return '<div class="list" aria-busy="true" data-spec="indicative" data-spec-note="骨架屏与列表同形，数据到达时布局不跳动">' + row + row + row + '</div>';
   }
   function errorView(retryHref) {
     return '<div class="state state--error" role="alert" data-spec="tbd" data-spec-note="加载失败的文案与重试策略（自动重试几次？）待定">' +
@@ -77,9 +79,9 @@
         return '<span class="week__day' + (read ? ' is-read' : '') + (i === todayIndex() ? ' is-today' : '') + '">' +
           '<span class="week__dot"></span><span class="week__label">' + WEEKDAYS[i] + '</span></span>';
       }).join('');
-      var streak = '<section class="streak surface" data-spec="indicative" data-spec-note="连续阅读：数字 + 本周 7 天打点，琥珀色只用于已读的日子">' +
-        '<div class="streak__text"><p class="tertiary">连续阅读</p><p class="streak__num num">' + esc(ctx.store.streakDays) + '<small>天</small></p>' +
-        '<p class="tertiary">今天也读了一点，很好。</p></div>' +
+      var streak = '<section class="streak" data-spec="indicative" data-spec-note="连续阅读：像笔记本页边的大号宋体天数 + 本周 7 天打点；琥珀只用于已读的日子">' +
+        '<p class="streak__num">' + esc(ctx.store.streakDays) + '<span class="streak__unit">天</span></p>' +
+        '<div class="streak__text"><p class="streak__label">连续阅读</p><p class="tertiary">今天也读了一点，很好。</p></div>' +
         '<div class="week" aria-label="本周阅读情况">' + week + '</div>' +
         '<span class="spec-anchor" data-spec="tbd" data-spec-note="“连续天数”的规则待定：按自然日还是 24 小时？漏记一天是否清零？"></span></section>';
       var tabs = '<div class="shelf-bar"><nav class="segmented" aria-label="书架分类" data-spec="fixed" data-spec-note="在读 / 读完 两个分类，数字为本数">' +
@@ -87,9 +89,9 @@
         '<a class="segmented__item' + (tab === 'done' ? ' is-active' : '') + '" href="#/?tab=done">读完 <span class="num">' + done.length + '</span></a></nav>' +
         '<span class="tertiary" data-spec="tbd" data-spec-note="书架排序规则待定：目前按添加时间（新的在前），是否改为最近记录在前？">按添加时间</span></div>';
       var list = shown.length
-        ? '<ul class="surface list book-list">' + shown.map(function (b, i) {
+        ? '<ul class="list book-list">' + shown.map(function (b, i) {
             return '<li><a class="list__item book-row" href="#/book/' + esc(b.id) + '"' +
-              (i === 0 ? ' data-spec="fixed" data-spec-note="书目行：封面 + 书名（单行省略）+ 作者 + 细进度条与百分比"' : '') + '>' +
+              (i === 0 ? ' data-spec="fixed" data-spec-note="书目行：书本式封面 + 书名（单行省略）+ 作者 + 细进度条与百分比，行间用细线分隔"' : '') + '>' +
               cover(b, 'sm') +
               '<span class="list__main"><span class="list__title">' + esc(b.title) + '</span>' +
               '<span class="list__meta">' + (b.author ? esc(b.author) : '作者未填写') + '</span>' +
@@ -115,7 +117,7 @@
         '<div class="book-hero__text"><span class="badge' + (isDone(book) ? ' badge--done' : '') + '">' + (isDone(book) ? '已读完' : '在读') + '</span>' +
         '<h1 class="title book-hero__title">' + esc(book.title) + '</h1>' +
         '<p class="secondary">' + (book.author ? esc(book.author) : '作者未填写') + '</p></div></section>';
-      var stats = '<section class="surface stats" data-spec="fixed" data-spec-note="进度：三项数字（等宽数字）+ 进度条">' +
+      var stats = '<section class="stats" data-spec="fixed" data-spec-note="进度：三项数字（等宽数字）以细线分隔 + 进度条">' +
         '<div class="stats__row">' +
         '<div><p class="tertiary">进度</p><p class="stats__value num">' + percent(book) + '<small>%</small></p></div>' +
         '<div><p class="tertiary">已读</p><p class="stats__value num">' + esc(book.currentPage) + '<small>页</small></p></div>' +
@@ -137,7 +139,7 @@
       var logs = book.logs.slice().reverse();
       var history = '<section class="section"><h2 class="section__title">阅读记录</h2>' +
         (logs.length
-          ? '<ul class="surface list history" data-spec="indicative" data-spec-note="记录列表：日期 + 读到第几页 + 当天读了多少页">' + logs.map(function (log, i) {
+          ? '<ul class="list history" data-spec="indicative" data-spec-note="记录列表：日期 + 读到第几页 + 当天读了多少页（不用强调色）">' + logs.map(function (log, i) {
               var prev = logs[i + 1] ? logs[i + 1].page : 0;
               return '<li class="list__item"><span class="list__main"><span class="list__title num">' + esc(log.date) + '</span>' +
                 '<span class="list__meta">读到第 ' + esc(log.page) + ' 页</span></span><span class="history__gain num">+' + (log.page - prev) + ' 页</span></li>';

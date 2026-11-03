@@ -5,7 +5,7 @@ license: MIT
 compatibility: "Needs file read/write. Reading images needs a vision-capable model; Figma links need a Figma MCP server or exported screenshots. The prototype needs only a browser; check_output.py needs Python 3."
 metadata:
   author: Tealun
-  version: "1.2.0"
+  version: "1.3.0"
 ---
 
 # design-to-dev
@@ -37,7 +37,7 @@ The three spec levels used everywhere:
 Load the reference for the step you are on:
 
 - [references/intake.md](references/intake.md) — reading each input type, the question list, the understanding card.
-- [references/visual-direction.md](references/visual-direction.md) — where the look comes from, the quality bar, direction presets and the visual QA checklist. Read before building styles.
+- [references/visual-direction.md](references/visual-direction.md) — fidelity vs direction mode, the direction lock, direction menu, four pillars (type, color, motion, composition), atmosphere, anti-slop list, the quality bar and the two-part visual QA; adapted in part from the frontend-design skill by zxh. Read it before building styles.
 - [references/design-tokens.md](references/design-tokens.md) — extracting tokens, naming, levels, the two file formats.
 - [references/prototype.md](references/prototype.md) — default stack, proto-kit API, pages, states, fake data, when to use another stack.
 - [references/annotation-and-handoff.md](references/annotation-and-handoff.md) — marking levels, HANDOFF.md, the two closing modes.
@@ -58,7 +58,7 @@ Read every input first (see intake reference). Then ask one round of at most fiv
 
 Always ask question 4 unless a VI and mockups are already provided. The look is the designer's call, never yours to guess.
 
-If the user says “you decide” or skips a question, take the default and record it as an assumption. Then show a short understanding card (product, users, device, pages, core flow, mode, visual direction and its sources, assumptions) and continue unless the user corrects it. Do not ask a second round unless an answer contradicts the inputs.
+If the user says “you decide” or skips a question, take the default and record it as an assumption. Then show a short understanding card (product, users, device, pages, core flow, mode, visual sources, assumptions) and, in direction mode, the direction lock from the visual direction reference: tone, display and body faces, dominant and accent colors, and the one memorable thing, written as concrete art direction and continue unless the user corrects it. Do not ask a second round unless an answer contradicts the inputs.
 
 ### 2. Extract the design rules
 
@@ -66,7 +66,7 @@ Build tokens for color, typography (family, size scale, weight, line height), sp
 
 ### 3. Build the clickable prototype
 
-Copy the five prototype templates (`index.html`, `styles.css`, `proto-kit.js`, `data.js`, `pages.js`) into `prototype/`. The templates implement the refined minimal direction; adapt `styles.css` to the VI, mockups, references or chosen preset (weights, radius, borders, density), then write `data.js` (fake data) and `pages.js` (one entry per page). Follow the principles in the visual direction reference: hierarchy from type and color rather than boxes, one accent, hairline surfaces, designed placeholders and states. Requirements:
+Copy the five prototype templates (`index.html`, `styles.css`, `proto-kit.js`, `data.js`, `pages.js`) into `prototype/`. They are a neutral, refined-minimal starting point, not the look: restyle `styles.css` for the VI, mockups or the locked direction (faces, weights, radius, borders, density, atmosphere, page-load sequence), so no two products come out looking the same. Write `data.js` (fake data) and `pages.js` (one entry per page). When the copy is final, bundle the chosen faces with `python3 <skill-dir>/scripts/fetch_fonts.py <output>/prototype "Display Face:700" "Body Face:400,500"` (all families in one call; re-run after copy changes). Without network, keep the system fallback and record the fonts as TBD. Requirements:
 
 - Every page in scope exists and every step of the core flow is clickable from the first page. If the flow ends on a page that was not designed (after sign-in, after checkout), add a minimal stub page marked TBD instead of inventing a design.
 - Links to pages outside the scope get `data-out`: the kit shows a “not in this prototype” toast. List them as open questions.
@@ -93,14 +93,14 @@ In mode B, write `PLANNER_BRIEF.md` first (see the closing modes below). Then ru
 python3 <skill-dir>/scripts/check_output.py <output>
 ```
 
-If you can drive a browser, open `prototype/index.html` at the design's width, walk the core flow and each state, and put each screenshot side by side with its source design. Fix visible differences in anything marked Fixed (color, weight, size, order); a page that renders blank or unstyled is a failure even when the checker passes. Then run the visual QA checklist in the visual direction reference on every screenshot and fix each failed item; when there is a source design, measure both screenshots with `palette.py --rows` instead of judging by eye; without a browser, review the CSS against the same checklist and say the visual check was not seen.
+If you can drive a browser, open `prototype/index.html` at the design's width, walk the core flow and each state, and put each screenshot side by side with its source design. Fix visible differences in anything marked Fixed (color, weight, size, order); a page that renders blank or unstyled is a failure even when the checker passes. Then run the two-part visual QA in the visual direction reference: part A comes from the checker's warnings (fix or explain each), part B is answered from the screenshots with what you saw, never as a score. When there is a source design, measure both screenshots with `palette.py --rows` instead of judging by eye. Without a browser, say the visual check was not seen. The final aesthetic call belongs to the designer: report it as awaiting their review.
 
 Then close in the chosen mode:
 
 - **Mode A, hand to a developer:** make HANDOFF.md self-explanatory, put open questions first in the summary, and tell the designer what to send (the whole output folder).
 - **Mode B, continue development:** also write `PLANNER_BRIEF.md` from [templates/PLANNER_BRIEF.md](templates/PLANNER_BRIEF.md) and tell the designer to start the next stage with it, for example “use planner with PLANNER_BRIEF.md”.
 
-Close with plain-language results for the designer: how to open the prototype, what to click to see the core flow and the states, how to show the spec marks (the Spec checkbox under “Prototype tools”, or Shift+A), the open questions that need their decision, the visual direction used and the visual QA result, and the checker result.
+Close with plain-language results for the designer: how to open the prototype, what to click to see the core flow and the states, how to show the spec marks (the Spec checkbox under “Prototype tools”, or Shift+A), the open questions that need their decision, the direction lock, the visual QA notes (part A warnings and part B observations), and the checker result.
 
 ## Rules
 

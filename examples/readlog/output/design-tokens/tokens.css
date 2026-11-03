@@ -39,10 +39,12 @@
   --color-cover-slate-deep: #35444c;
   --color-cover-ink: #1f2a2e;        /* indicative · title text on light covers */
   --color-cover-light: #ffffff;      /* indicative · title text on dark covers */
+  --color-cover-spine: rgba(0, 0, 0, 0.22);       /* indicative · spine shadow on covers */
+  --color-cover-sheen: rgba(255, 255, 255, 0.16); /* indicative · light catching the cover */
 
   /* typography */
-  --font-family-display: "Noto Serif SC", "Source Han Serif SC", "Songti SC", "STSong", Georgia, serif; /* fixed · brand.md titles */
-  --font-family-base: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; /* fixed · brand.md body */
+  --font-family-display: "Noto Serif SC", "Source Han Serif SC", "Songti SC", "STSong", Georgia, serif; /* fixed · brand.md titles; bundled subset in prototype/fonts */
+  --font-family-base: "Noto Sans SC", -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; /* indicative · brand.md says system sans; Noto Sans SC bundled for consistent rendering */
   --font-weight-regular: 400;        /* indicative · refined minimal preset */
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
@@ -72,18 +74,21 @@
 
   /* radius, shadow, motion */
   --radius-xs: 3px;                  /* indicative · book cover corners */
-  --radius-sm: 6px;                  /* indicative · brand.md "soft corners" */
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 18px;
+  --radius-sm: 6px;                  /* indicative · refined minimal family; brand.md "soft corners" */
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
   --radius-full: 999px;
   --shadow-xs: 0 1px 2px rgba(31, 42, 46, 0.04);  /* indicative · paper-light */
   --shadow-sm: 0 1px 3px rgba(31, 42, 46, 0.06), 0 1px 2px rgba(31, 42, 46, 0.03);
   --shadow-md: 0 8px 24px rgba(31, 42, 46, 0.08), 0 2px 6px rgba(31, 42, 46, 0.04);
   --shadow-cover: 0 1px 2px rgba(31, 42, 46, 0.18), 0 4px 10px rgba(31, 42, 46, 0.10);
+  --shadow-cover-lg: 0 2px 4px rgba(31, 42, 46, 0.12), 0 16px 32px rgba(31, 42, 46, 0.18); /* indicative · the one dramatic shadow: detail cover */
   --duration-fast: 120ms;            /* indicative · refined minimal preset */
   --duration-base: 180ms;
+  --duration-scene: 640ms;
   --easing-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --easing-out: cubic-bezier(0.16, 1, 0.3, 1);
 
   /* sizes and layout */
   --size-control: 44px;              /* fixed · phone-first touch target */

@@ -34,6 +34,7 @@ function buildFixture() {
         root.querySelector('#save').addEventListener('click', function () { ctx.store.items[0].title = 'Edited in prototype'; Proto.save(); Proto.refresh(); });
       }
     });
+    Proto.page('/other', { render: function () { return '<p id="other">Other</p>'; } });
     Proto.start({ name: 'kit-test', home: '/', lang: 'en' });`);
   return root;
 }
@@ -74,6 +75,14 @@ function writeData(root, title) {
     writeData(root, 'Second title'); // the designer or the agent edits the fake data
     await page.reload();
     assert.strictEqual(await page.textContent('#title'), 'Second title', 'stale saved data hid the data.js edit');
+  });
+
+  await test('page-load sequence plays on navigation, not on refresh', async () => {
+    await page.goto(url + '#/other');
+    await page.goto(url + '#/');
+    assert.ok(await page.evaluate(() => document.getElementById('app').classList.contains('pk-enter')), 'navigation should add pk-enter');
+    await page.click('#save'); // Proto.refresh()
+    assert.ok(!(await page.evaluate(() => document.getElementById('app').classList.contains('pk-enter'))), 'refresh must not replay the entrance');
   });
 
   await test('no page errors', async () => {

@@ -48,7 +48,7 @@ For every page:
 
 - **Flow ends outside the design:** add one stub page (for example `/signed-in`) that says the flow ended, mark it `data-spec="tbd"`, and list it in the HANDOFF page table with level TBD. Do not design it.
 - **Links to pages not in scope:** `<a href="#" data-out>Forgot password?</a>`. proto-kit shows a “not in this prototype” toast. Each becomes an open question.
-- **Assets not supplied:** a neutral placeholder (initial in a circle, grey box with the asset name), marked TBD, listed in HANDOFF section 3 under Assets.
+- **Assets not supplied:** a neutral placeholder that looks intentional (initials in a soft neutral circle, a quiet line icon with the asset's role as its label; see the visual direction reference), marked TBD, listed in HANDOFF section 3 under Assets.
 - **Sign-in, payment and other sensitive forms:** accept only a fictional demo account from `data.js` (e.g. demo / demo1234), state it in HANDOFF section 0, and never send input anywhere.
 
 ## Fake data

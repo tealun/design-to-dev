@@ -97,6 +97,10 @@ scripts/build.py        平台规则校验与打包
 design-to-dev.zip       WorkBuddy 上传包（CI 校验与源码一致）
 ```
 
+## 致谢
+
+视觉方法（设计方向说明、方向菜单、四大支柱、去 AI 味清单）部分借鉴自 zxh 的 frontend-design 技能。
+
 ## 许可证
 
 MIT
