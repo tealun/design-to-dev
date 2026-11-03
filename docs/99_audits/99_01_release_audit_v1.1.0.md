@@ -37,21 +37,23 @@
 | F-03 | P1 | Confirmed / High | Fixed (1.1.1) | 模式 B 的 PLANNER_BRIEF 从未被检查：第 6 步的命令不带 `--mode B`，且 brief 在检查之后才写；`--mode` 在 SKILL.md 与 references 中都没出现 | `SKILL.md:90`、`:96-98`；`check_output.py:223`；UX / 9 | `grep -rn -- "--mode" SKILL.md references/` 无结果 | 第 6 步先写 brief 再检查，命令写明 `--mode B`；或由 HANDOFF 的“交接对象”自动判断 |
 | F-04 | P1 | Confirmed / Medium | Fixed (1.1.1) | localStorage 里的旧数据会盖住 `data.js` 的修改；设计师或 Agent 改了假数据后刷新，看到的还是旧内容 | `templates/proto-kit.js:65-71`；数据 / 7、UX / 9 | 记录一次页码后把 data.js 的书名改为“改过的书名”，刷新后首卡仍显示“慢慢来的散步” | 保存时带上 `window.MOCK` 的指纹，指纹变化时丢弃旧数据 |
 | F-05 | P2 | Confirmed / High | Open | 路由参数含非法 `%` 编码时整页空白 | `templates/proto-kit.js:165`；运行时 / 5、8 | `#/book/%E0` → pageerror `URI malformed`，`#app` 为空 | `decodeURIComponent` 包 try/catch，失败时显示“页面不存在” |
-| F-06 | P2 | Confirmed / High | Open | 原始色检查把 `#add`、`#bad`、`#face` 这类锚点或 id 当成颜色 | `scripts/check_output.py:31`；测试 / 11 | 在 pages.js 加 `querySelector('#bad')` → `raw colors ['#bad']` FAIL | JS 里只在样式上下文（`style=`、`color:` 等）中查找，或排除 `href="#…"`/选择器 |
+| F-06 | P2 | Confirmed / High | Fixed (1.2.0) | 原始色检查把 `#add`、`#bad`、`#face` 这类锚点或 id 当成颜色 | `scripts/check_output.py:31`；测试 / 11 | 在 pages.js 加 `querySelector('#bad')` → `raw colors ['#bad']` FAIL | JS 里只在样式上下文（`style=`、`color:` 等）中查找，或排除 `href="#…"`/选择器 |
 | F-07 | P2 | Confirmed / High | Open | `--contrast` 忽略透明度；命名颜色直接崩溃 | `scripts/palette.py:91-92`；数据 / 7、8 | `#ffffff` vs `#2f6f4f66` → 5.99:1 AA pass（与不透明相同）；`white` → ValueError | 带 alpha 时要求给出底色并先合成，或明确报错；非十六进制输入给出可读错误 |
 | F-08 | P2 | Exposure / Medium | Open | 大图内存与耗时过高 | `scripts/palette.py:49`、`:83`；效率 / 4 | 2880×6000 白底图：13.7 s，子进程峰值 1269 MB | 只保留计数器、按行累计；或按步长采样并说明 |
-| F-09 | P2 | Confirmed / High | Open | token 参考文档的命名与模板不一致：参考写 `content-max-width`、行高按档位，模板用 `--layout-content-width`、`--line-height-base`；参考未列出模板必需的 `--size-touch-target` | `references/design-tokens.md:9`、`:14`；`templates/styles.css:13`、`:22`、`:36`；规范 / 10 | 按参考改名后 check_output 报 `var(--line-height-base)…not defined` | 参考表与模板 tokens.css 对齐，列出模板依赖的全部 token |
-| F-10 | P2 | Confirmed / High | Open | SKILL.md 与参考要求的状态色（primary-active、disabled-bg/text、success、warning、info）模板里都没有，禁用态改用 `opacity: 0.5` | `SKILL.md:62`、`references/design-tokens.md:7`、`templates/tokens.css`、`templates/styles.css:46`；规范 / 10 | grep 模板 tokens.css 无上述名称 | 模板补齐这些 token 并在 styles.css 使用，或把要求改为“设计中出现时才提取” |
-| F-11 | P2 | Confirmed / High | Open | 模板语言自相矛盾：`index.html` 为 `lang="zh-CN"`，`pages.js` 用 `lang: 'en'` | `templates/index.html:2`、`templates/pages.js:49`；UX / 9 | 见行内容 | 统一为占位 `{{LANG}}`，参考里写明两处需一致 |
-| F-12 | P2 | Confirmed / High | Open | 收尾话术说“Spec button”，实际是工具面板里的复选框 | `SKILL.md:100`；`templates/proto-kit.js:209`；UX / 9 | 见行内容 | 改为“原型工具里的‘标注’复选框，或 Shift+A” |
-| F-13 | P2 | Confirmed / High | Open | 参考要求把对比度写进 HANDOFF 第 5 节，模板第 5 节没有对应位置 | `references/prototype.md:45`；`templates/HANDOFF.md` 第 5 节；规范 / 10 | 模板第 5 节无 contrast/对比 字样 | 模板加“对比度 Contrast”一行 |
-| F-14 | P2 | Confirmed / High | Open | 脚本路径三种写法，`<skill-dir>` 没有定义 | `SKILL.md:90`、`references/design-tokens.md:62`、`references/intake.md:7`、`references/annotation-and-handoff.md:46`；规范 / 10 | grep 结果 | SKILL.md 开头定义 `<skill-dir>` = 本 SKILL.md 所在目录，全文统一写法 |
-| F-15 | P2 | Likely / Medium | Open | “Copy the templates into `prototype/`” 有歧义：templates 里还有 tokens 与文档模板 | `SKILL.md:66`；`references/prototype.md:7-13`；规范 / 10 | 见行内容 | 写明只复制 5 个原型文件 |
+| F-09 | P2 | Confirmed / High | Fixed (1.2.0) | token 参考文档的命名与模板不一致：参考写 `content-max-width`、行高按档位，模板用 `--layout-content-width`、`--line-height-base`；参考未列出模板必需的 `--size-touch-target` | `references/design-tokens.md:9`、`:14`；`templates/styles.css:13`、`:22`、`:36`；规范 / 10 | 按参考改名后 check_output 报 `var(--line-height-base)…not defined` | 参考表与模板 tokens.css 对齐，列出模板依赖的全部 token |
+| F-10 | P2 | Confirmed / High | Fixed (1.2.0) | SKILL.md 与参考要求的状态色（primary-active、disabled-bg/text、success、warning、info）模板里都没有，禁用态改用 `opacity: 0.5` | `SKILL.md:62`、`references/design-tokens.md:7`、`templates/tokens.css`、`templates/styles.css:46`；规范 / 10 | grep 模板 tokens.css 无上述名称 | 模板补齐这些 token 并在 styles.css 使用，或把要求改为“设计中出现时才提取” |
+| F-11 | P2 | Confirmed / High | Fixed (1.2.0) | 模板语言自相矛盾：`index.html` 为 `lang="zh-CN"`，`pages.js` 用 `lang: 'en'` | `templates/index.html:2`、`templates/pages.js:49`；UX / 9 | 见行内容 | 统一为占位 `{{LANG}}`，参考里写明两处需一致 |
+| F-12 | P2 | Confirmed / High | Fixed (1.2.0) | 收尾话术说“Spec button”，实际是工具面板里的复选框 | `SKILL.md:100`；`templates/proto-kit.js:209`；UX / 9 | 见行内容 | 改为“原型工具里的‘标注’复选框，或 Shift+A” |
+| F-13 | P2 | Confirmed / High | Fixed (1.2.0) | 参考要求把对比度写进 HANDOFF 第 5 节，模板第 5 节没有对应位置 | `references/prototype.md:45`；`templates/HANDOFF.md` 第 5 节；规范 / 10 | 模板第 5 节无 contrast/对比 字样 | 模板加“对比度 Contrast”一行 |
+| F-14 | P2 | Confirmed / High | Fixed (1.2.0) | 脚本路径三种写法，`<skill-dir>` 没有定义 | `SKILL.md:90`、`references/design-tokens.md:62`、`references/intake.md:7`、`references/annotation-and-handoff.md:46`；规范 / 10 | grep 结果 | SKILL.md 开头定义 `<skill-dir>` = 本 SKILL.md 所在目录，全文统一写法 |
+| F-15 | P2 | Likely / Medium | Fixed (1.2.0) | “Copy the templates into `prototype/`” 有歧义：templates 里还有 tokens 与文档模板 | `SKILL.md:66`；`references/prototype.md:7-13`；规范 / 10 | 见行内容 | 写明只复制 5 个原型文件 |
 | F-16 | P2 | Likely / Medium | Open | 触发描述含 “design to code”“extract design tokens”，可能被开发者“在现有代码库里把 Figma 实现成 React”或“只要 tokens”的请求误触发；技能只产出一次性原型，没有只出 tokens 的路径 | `SKILL.md:3`；平台 / 2 | 描述原文；技能禁止生产代码（`annotation-and-handoff.md:42`） | 描述里限定“clickable prototype for designers”，并写明不用于在现有代码库中实现设计 |
 
 ## Fix Log
 
 - 1.1.1：F-01–F-04 已修复。回归测试 `tests/test_scripts.py`（F-02、F-03）与 `tests/kit.test.js`（F-01、F-04）在修复前失败、修复后通过，CI 运行两者；审计时的原始复现（C3、C4）在修复后的 kit 上不再出现。
+
+- 1.2.0：F-06、F-09–F-15 已修复；复核见 `99_02_release_audit_v1.2.0.md`（F-06 的修复引入 N-01）。F-05、F-07、F-08、F-16 仍为 Open。
 
 ## Verification Gaps
 
