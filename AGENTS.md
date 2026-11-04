@@ -14,4 +14,7 @@
 - 改了模板 `proto-kit.js`：同步复制到 `examples/readlog/output/prototype/`，并运行 `python3 skills/design-to-dev/scripts/check_output.py examples/readlog/output --mode B`。
 - 改了 Readlog 的文案或页面：运行 `python3 skills/design-to-dev/scripts/fetch_fonts.py examples/readlog/output/prototype "Noto Serif SC:700" "Noto Sans SC:400,500"` 重新生成字体子集。
 - 视觉自查不自评打分：客观项以 `check_output.py` 的警告为准，审美定稿由用户评审。
+- “做过审计”只指正式调用 auditor 技能并写出报告：每个 MAJOR.MINOR 版本都要有 `docs/99_audits/*release_audit_vX.Y*.md`，`build.py --check` 会拦截没有报告的版本。
+- 修改检查脚本（check_output、palette、build）时，每处改动同时写一条“必须报出”和一条“必须放过”的测试；只测一个方向的修复会引入新的漏报或误报。
+- 示例里写的任何效果（如入场动画、字体已打包）都要有测试或检查证明它真的存在；示例的基础样式与 proto-kit 必须与模板一致（`ExampleInSync` 测试）。
 - 发布到新平台之前，先把它的全部规则写进 `scripts/build.py`，本地通过后再上传。

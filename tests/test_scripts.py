@@ -329,5 +329,25 @@ class ExampleInSync(unittest.TestCase):
                          (SCRIPTS.parent / "templates" / "proto-kit.js").read_bytes())
 
 
+class ReleaseAuditGate(unittest.TestCase):
+    """A release needs a written auditor report for its MAJOR.MINOR (lesson EV-20261103-001)."""
+
+    def setUp(self) -> None:
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("build", REPO / "scripts" / "build.py")
+        self.build = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(self.build)
+
+    def test_current_version_has_a_report(self) -> None:
+        errors: list[str] = []
+        self.build.check_release_audit("1.3.1", REPO / "docs" / "99_audits", errors)
+        self.assertEqual(errors, [])
+
+    def test_unaudited_minor_version_fails(self) -> None:
+        errors: list[str] = []
+        self.build.check_release_audit("1.4.0", REPO / "docs" / "99_audits", errors)
+        self.assertTrue(errors and "1.4" in errors[0], errors)
+
+
 if __name__ == "__main__":
     unittest.main()

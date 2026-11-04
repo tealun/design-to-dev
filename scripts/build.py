@@ -191,6 +191,15 @@ def check_marketplace(version: str, errors: list[str]) -> None:
     print(f"ok-marketplace: {len(data.get('plugins', []))} plugin(s)")
 
 
+def check_release_audit(version: str, audits: Path, errors: list[str]) -> None:
+    """Every MAJOR.MINOR release needs a written auditor report (docs/99_audits/*release_audit_vX.Y*.md).
+    Saying "audited" without running the auditor skill and writing its report is the failure this blocks."""
+    minor = ".".join(version.split(".")[:2])
+    if not any(audits.glob(f"*release_audit_v{minor}*.md")):
+        errors.append(f"no release audit report for {minor} in {audits.relative_to(REPO) if audits.is_relative_to(REPO) else audits}; "
+                      f"run the auditor skill and save its report as docs/99_audits/99_NN_release_audit_v{minor}.0.md")
+
+
 def package_files() -> list[tuple[str, Path]]:
     entries = [("LICENSE", REPO / "LICENSE")]
     for f in sorted(SKILL.rglob("*")):
@@ -230,6 +239,7 @@ def main() -> int:
     fm, version = check_spec(errors)
     _, wb_raw = check_workbuddy(fm, version, errors)
     check_marketplace(version, errors)
+    check_release_audit(version, REPO / "docs" / "99_audits", errors)
     if errors:
         print("validation failed:\n  " + "\n  ".join(errors))
         return 1
