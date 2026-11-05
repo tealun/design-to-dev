@@ -33,7 +33,7 @@ design-to-dev 是一个 Agent 技能，给懂设计、不太懂代码的人用�
 5. **交接文档**：`HANDOFF.md`，含 Mermaid 流程图。
 6. **两种收尾**：
    - **A. 交给开发**：文档侧重说清楚，待定问题放在最前面。
-   - **B. 自己继续开发**：额外生成 `PLANNER_BRIEF.md`，可以直接交给 [Tealun Skills](https://github.com/tealun/Tealun-Skills) 的 planner 规划下一步。
+   - **B. 自己继续开发**：额外生成 `PLANNER_BRIEF.md`，可以直接交给 [Tealun Dev PDCA](https://github.com/tealun/tealun-dev-pdca) 的 planner 规划下一步。
 
 交付前，技能会运行自带的检查脚本：两份 tokens 是否一致、页面和文档是否对得上、有没有写死的颜色、标注是否合法、待定项是否都进了文档。
 

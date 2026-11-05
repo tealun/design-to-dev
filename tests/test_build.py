@@ -66,6 +66,26 @@ class RepoCopy(unittest.TestCase):
         self.assertTrue(any(needle in e for e in errs), f"expected '{needle}' in {errs}")
 
 
+class PublicRepository(RepoCopy):
+    """The repository is public: no session links or IDs in tracked files (AGENTS.md)."""
+
+    def test_session_link_is_reported(self) -> None:
+        note = self.repo / "docs" / "note.md"
+        note.write_text("See https://claude.ai/code/" + "session_" + "01ABCDEFGHIJKLMNOPQRSTUV\n", encoding="utf-8")
+        self.commit()
+        self.assertReported("docs/note.md line 1: session link")
+
+    def test_bare_session_id_is_reported(self) -> None:
+        (self.repo / "docs" / "note.md").write_text("from " + "session_" + "01ABCDEFGHIJKLMNOPQRSTUV\n", encoding="utf-8")
+        self.commit()
+        self.assertReported("docs/note.md line 1: session link")
+
+    def test_ordinary_session_wording_passes(self) -> None:
+        (self.repo / "docs" / "note.md").write_text("Each session starts with a question; sessionStorage is not used.\n", encoding="utf-8")
+        self.commit()
+        self.assertEqual(self.errors(), [])
+
+
 class PluginCheck(RepoCopy):
     def test_repository_passes(self) -> None:
         self.assertEqual(self.errors(), [])
@@ -257,6 +277,16 @@ class ReleaseGatesInSync(unittest.TestCase):
         text = self.read("plugin-branch.yml")
         self.assertIn('git checkout --quiet "refs/tags/v$version"', text)
         self.assertIn("is not released yet", text)
+
+
+class ReleaseFromWebsite(unittest.TestCase):
+    """A release published on the GitHub website already exists when release.yml runs; it must be filled, not recreated."""
+
+    def test_existing_release_gets_the_packages(self) -> None:
+        text = (REPO / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
+        self.assertIn('gh release view "$GITHUB_REF_NAME"', text)
+        self.assertIn('gh release upload "$GITHUB_REF_NAME" "${assets[@]}" --clobber', text)
+        self.assertIn("gh release create", text)
 
 
 if __name__ == "__main__":

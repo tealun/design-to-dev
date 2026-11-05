@@ -46,15 +46,24 @@ jobs:
         run: npx -y @anthropic-ai/claude-code@2.1.318 plugin validate dist/design-to-dev/.claude-plugin/plugin.json
       - name: release notes from CHANGELOG
         run: python3 scripts/build_plugin.py --notes "$RUNNER_TEMP/notes.md"
-      - name: create the GitHub Release
+      # The tag comes either from `git push origin v<version>` or from publishing a release on the
+      # GitHub website with a new tag. In the second case the Release already exists: this step
+      # attaches the packages and replaces its title and notes, so nobody uploads files by hand.
+      - name: create the GitHub Release, or fill the one created on the website
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           version="${GITHUB_REF_NAME#v}"
-          gh release create "$GITHUB_REF_NAME" \
-            "dist/design-to-dev-${version}.plugin" \
-            "dist/design-to-dev-${version}.zip" \
-            "dist/design-to-dev-workbuddy-${version}.zip" \
-            "dist/design-to-dev-workbuddy-${version}-flat.zip" \
-            --title "design-to-dev ${version}" \
-            --notes-file "$RUNNER_TEMP/notes.md"
+          assets=(
+            "dist/design-to-dev-${version}.plugin"
+            "dist/design-to-dev-${version}.zip"
+            "dist/design-to-dev-workbuddy-${version}.zip"
+            "dist/design-to-dev-workbuddy-${version}-flat.zip"
+          )
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" "${assets[@]}" --clobber
+            gh release edit "$GITHUB_REF_NAME" --title "design-to-dev ${version}" --notes-file "$RUNNER_TEMP/notes.md"
+          else
+            gh release create "$GITHUB_REF_NAME" "${assets[@]}" \
+              --title "design-to-dev ${version}" --notes-file "$RUNNER_TEMP/notes.md"
+          fi
