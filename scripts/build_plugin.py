@@ -51,6 +51,9 @@ RESERVED_NAMES = {"claude", "anthropic", "official", "plugin", "mcp", "test"}
 RESERVED_PREFIXES = ("claude-", "anthropic-", "anthropics-", "cc-plugin-")
 README_MIN_WORDS = 40
 # The directory shows clone-and-run or pipe-to-shell install steps to users as an install-time risk.
+# A Claude session link or ID in a tracked file (the repository is public; see AGENTS.md).
+SESSION_ID = re.compile(r"claude\.ai/code/session|\bsession_0[0-9A-Za-z]{20,}")
+BINARY_SUFFIXES = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico", ".woff", ".woff2", ".ttf", ".otf", ".pdf"}
 DOWNLOAD_AND_RUN = re.compile(
     r"git clone|curl\s|wget\s|\birm\b|\biwr\b|Invoke-WebRequest|Invoke-Expression|\biex\b"
     r"|\|\s*(ba|z)?sh\b|\bbash\s+\S+\.sh|\.ps1\b|\bnpx\s|\buvx\s|\bpipx\s", re.I)
@@ -157,6 +160,12 @@ def check(repo: Path = REPO, tag: str | None = None, since: str | None = None, r
         rel = f.relative_to(repo).as_posix()
         if f.suffix in (".zip", ".plugin"):
             errors.append(f"{rel}: packages are built by release.yml and attached to the Release, never committed")
+        elif f.is_file() and not f.is_symlink() and f.suffix not in BINARY_SUFFIXES:
+            text = f.read_bytes().decode("utf-8", "replace")
+            for n, line in enumerate(text.splitlines(), 1):
+                if SESSION_ID.search(line):
+                    errors.append(f"{rel} line {n}: session link or session ID; this repository is public "
+                                  "(AGENTS.md: no session IDs, private repository names or business arrangements)")
     # the package as the directory will see it on the plugin branch
     for rel, src in package_entries(repo)[1]:
         if src.is_symlink():

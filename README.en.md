@@ -33,7 +33,7 @@ No coding and no Node.js needed; the prototype needs only a browser.
 5. **Write HANDOFF.md**, including a Mermaid flow diagram.
 6. **Close in one of two modes:**
    - **A. Hand to a developer** — clarity first, open questions up front.
-   - **B. Keep building yourself** — also writes `PLANNER_BRIEF.md`, ready for the planner skill from [Tealun Skills](https://github.com/tealun/Tealun-Skills).
+   - **B. Keep building yourself** — also writes `PLANNER_BRIEF.md`, ready for the planner skill from [Tealun Dev PDCA](https://github.com/tealun/tealun-dev-pdca).
 
 Before handoff the skill runs its bundled checker: both token files match, pages match the document, no hard-coded colors, valid marks, every TBD listed.
 

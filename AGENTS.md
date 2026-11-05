@@ -15,7 +15,8 @@
 
 ## 本仓库的硬规则
 
-- **本仓库是独立发布的技能。** 不要把它的文件写进 Tealun-Skills、tealun-dev-pdca 或其他仓库。唯一的例外是上架：在 `tealun/tealun-plugins` 的 `marketplace.json` 加或改本插件那一条，README 插件表同步一行，改动走 PR。
+- **本仓库是公开的。** 文件和提交信息里不写内部决策、会话编号、私有仓库名和商业安排，只写对使用者和贡献者有用的内容；遵守率记录只写周期名称，不写会话编号。提交信息末尾只写 `Co-Authored-By`，不写 `Claude-Session` 行；PR 描述也不写会话链接（2026-11-05 起，已有提交不改写）。`build_plugin.py --check` 拦截已跟踪文件里的会话链接和会话编号。
+- **本仓库是独立发布的技能。** 不要把它的文件写进 tealun-dev-pdca 或其他仓库。唯一的例外是上架：在 `tealun/tealun-plugins` 的 `marketplace.json` 加或改本插件那一条，README 插件表同步一行，改动走 PR。
 - **发布到任何平台之前，先查清它的全部规则。** 规则逐条登记到对照表（Claude 插件目录见 `docs/claude-directory-rules.md`，WorkBuddy 见 `docs/workbuddy-rules.md`），每条要么写进本地检查（`scripts/build_plugin.py --check`、`scripts/build_suite.py --check`），要么写明不检查的原因；本地通过后再上传。不要用平台的报错来逐条试规则，也不要只挑带数字的规则做检查。平台新报出的问题，先登记进对照表再修。
 - **版本只写在 `.claude-plugin/plugin.json`。** SKILL.md、`workbuddy.yaml` 不写版本，打包时注入。改了 `skills/` 下任何文件，就升版本，并在 `CHANGELOG.md` 加一节 `## design-to-dev <版本> — <日期>`。升法：删技能或改变已有输出格式（目录结构、HANDOFF 章节、token 命名）升 major；新增行为、改变触发描述或工作流程升 minor；其余（修复、措辞、文档）升 patch。CI 用 `build_plugin.py --check --since <上一个 tag>` 拦截没升版本的改动。
 - **发布只靠推送 `v<版本>` tag。** 两种推法：命令行 `git push origin v<版本>`；或在 GitHub 网页 Releases → Draft a new release，新建 tag `v<版本>`、目标 main，直接发布，附件和说明由 `release.yml` 自动补上。 `.github/workflows/release.yml` 构建 `.plugin`、`.zip` 和 WorkBuddy 包，并附到 Release 上。不手动上传 Release 附件，也不把 zip、`.plugin` 提交进仓库（`--check` 会拦截）。每个 MAJOR.MINOR 版本发布前，要有 `docs/99_audits/*release_audit_vX.Y*.md`（发布工作流里的 `--check --tag`/`--release` 会拦截）。
