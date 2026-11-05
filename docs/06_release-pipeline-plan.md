@@ -50,7 +50,7 @@
 | P-D4 | 发布审计门禁（本仓库 EV-20261103-001）并入 `build_plugin.py --check`：每个 MAJOR.MINOR 版本都要有 `docs/99_audits/*release_audit_vX.Y*.md`。 | 本仓库台账 |
 | P-D5 | 打包内容：`.claude-plugin/plugin.json`、`skills/design-to-dev/**`、README.md、LICENSE、PRIVACY.md、图标、README 引用的示例预览图。打包不含 CI、scripts/、tests/、docs/（预览图除外）、examples/、CLAUDE.md、AGENTS.md。README 里的仓库内链接一律写成 GitHub 绝对地址，这样在 plugin 分支和上架页上也能打开。 | dev-pdca EV-20261105-003；用户第 3 条 |
 | P-D6 | `.gitattributes` 为 `* -text`；`build_plugin.py --check` 包含 `content_rewriting_attributes()` 和 `export_mismatches()`。 | 用户第 2 条；dev-pdca EV-20261105-002 |
-| P-D7 | 工作流：`check.yml` 每次推送都校验，并排除 plugin 分支；`release.yml` 由 v* tag 触发，附 `.plugin`、`.zip` 和 WorkBuddy 包；`plugin-branch.yml` 由 v* tag 或在 main 上手动触发。两个发布工作流都用固定版本的 Claude Code CLI 运行 `plugin validate`。保留 `check.yml` 的文件名，作用对应 dev-pdca 的 `suite-package.yml`。 | 用户第 6 条 |
+| P-D7 | 工作流：`check.yml` 每次推送都校验，并排除 plugin 分支；`release.yml` 由 v* tag 触发，附 `.plugin`、`.zip` 和 WorkBuddy 包；`plugin-branch.yml` 由 v* tag 或在 main 上手动触发；它与 `release.yml` 用同一组门（`--check --tag`、单元测试），手动触发时只发布当前版本已有的 tag（审计 99_04 A-01、A-02）。两个发布工作流都用固定版本的 Claude Code CLI 运行 `plugin validate`。保留 `check.yml` 的文件名，作用对应 dev-pdca 的 `suite-package.yml`。 | 用户第 6 条 |
 | P-D8 | **联网披露**：`fetch_fonts.py` 只在 Agent 运行它时访问 `fonts.googleapis.com`、`fonts.gstatic.com`，会把原型里用到的字符作为 `text=` 参数发出去。默认做法是：保留这个脚本；SKILL.md 要求运行前先告诉设计师会发送什么，并给出跳过或 `--latin` 的选择；PRIVACY.md 与 README 写明。数据问卷：个人数据 No，外发数据 Yes（仅限上述字体请求，由用户触发），数据保留 Not retained，面向未成年人 No。 | 用户第 11、12 条；脚本源码 |
 | P-D9 | 插件只含技能（不含 MCP、hooks、bin/）。技能里的 4 个脚本在 PRIVACY.md 逐个说明用途和网络行为；目录规则表登记“有可执行脚本，审核会更严”。 | 用户第 12 条 |
 | P-D10 | 新增 512×512 PNG 图标 `assets/design-to-dev-icon.png`，由 `scripts/make_icon.py` 生成。 | 目录图标规格 |

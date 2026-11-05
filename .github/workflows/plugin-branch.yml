@@ -3,7 +3,8 @@ name: plugin branch
 # The Claude plugin directory and the tealun marketplace track the `plugin` branch, which
 # holds only the built plugin (plugin.json, the skill, README, LICENSE, PRIVACY, icon) and
 # none of the repository's tooling. This workflow is the only writer of that branch: on a
-# release tag, or by hand (workflow_dispatch) on main to fill or refresh it.
+# release tag, or by hand (workflow_dispatch) on main to fill or refresh it from the tag of
+# the current version. It runs the same gates as release.yml (audit 99_04 A-01, A-02).
 
 on:
   push:
@@ -32,8 +33,32 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: plugin checks
-        run: python3 scripts/build_plugin.py --check --release
+      - name: test dependency (WorkBuddy frontmatter must parse as YAML; pinned)
+        run: python3 -m pip install pyyaml==6.0.2
+      - name: resolve the released tag (a manual run publishes the tag of the current version, never unreleased main)
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            version=$(python3 -c "import json; print(json.load(open('.claude-plugin/plugin.json'))['version'])")
+            if ! git rev-parse --quiet --verify "refs/tags/v$version" >/dev/null; then
+              echo "::error::v$version is not released yet: push the tag v$version first (release.yml)"
+              exit 1
+            fi
+            git checkout --quiet "refs/tags/v$version"
+            echo "RELEASE_TAG=v$version" >> "$GITHUB_ENV"
+          else
+            echo "RELEASE_TAG=$GITHUB_REF_NAME" >> "$GITHUB_ENV"
+          fi
+      # the same gates as release.yml, so the plugin branch never gets a version whose Release failed them
+      - name: plugin checks for the tag
+        run: |
+          previous=$(git describe --tags --abbrev=0 "${RELEASE_TAG}^" 2>/dev/null || true)
+          python3 scripts/build_plugin.py --check --tag "$RELEASE_TAG" ${previous:+--since "$previous"}
+      - name: WorkBuddy package, ledger, example output and unit tests
+        run: |
+          python3 scripts/build_suite.py --check
+          python3 scripts/check_ledger.py
+          python3 skills/design-to-dev/scripts/check_output.py examples/readlog/output --mode B
+          python3 -m unittest discover -s tests
       - name: build the plugin
         run: python3 scripts/build_plugin.py
       - name: validate the built plugin with the Claude Code CLI

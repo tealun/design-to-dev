@@ -11,6 +11,7 @@
 - `.gitattributes` 设为 `* -text`；新增 `PRIVACY.md`、图标、`docs/98_evolution/compliance-log.md`。
 - 技能：运行 `fetch_fonts.py` 前要先告诉设计师它会把原型用字的集合发给 Google Fonts，同意后才运行；不同意就用系统字体并记为【待定】。
 - README 去掉下载后直接执行的命令，安装改为 tealun 市场或从 Release 下载。
+- 发布前审计 `99_04`：`plugin-branch.yml` 改用与 Release 相同的门禁（tag 与版本一致、CHANGELOG、单元测试），手动触发只发布已打 tag 的当前版本；`release.yml` 补跑示例检查。
 
 按新 agent 试跑（只给 SKILL.md 路径，Linear 登录页截图）的 17 条反馈核实后修改：
 

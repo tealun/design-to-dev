@@ -32,6 +32,8 @@ jobs:
         run: python3 scripts/check_ledger.py
       - name: script unit tests
         run: python3 -m unittest discover -s tests
+      - name: the bundled example passes the output checker
+        run: python3 skills/design-to-dev/scripts/check_output.py examples/readlog/output --mode B
       - name: plugin checks for this tag
         run: |
           previous=$(git describe --tags --abbrev=0 "${GITHUB_REF_NAME}^" 2>/dev/null || true)
