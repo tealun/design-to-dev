@@ -7,6 +7,8 @@ Usage:
     python3 palette.py shot.png --at 200,700 36,412  # colors at image pixel coordinates
     python3 palette.py --contrast "#ffffff" "#1f883d"  # contrast ratio and WCAG AA result
     python3 palette.py --contrast "#ffffff" "#2f6f4f66" --over "#fbf7f0"   # translucent color on its backdrop
+    python3 palette.py shot.png --cols 120-150       # horizontal position and width of each block in that y range
+    python3 palette.py --contrast "#ffffff" "#6d78d5" --fix   # also print the nearest shade of the background that passes AA
     python3 palette.py shot.png --rows 560-880       # vertical position and height of each block in that x range,
                                                      # in 1x points: compare the source design with the prototype
 
@@ -190,6 +192,47 @@ def print_rows(image: Image, span: str) -> None:
             start = None
 
 
+def print_cols(image: Image, span: str) -> None:
+    """Blocks of columns whose pixels differ from the background inside y range span ('y0-y1', image pixels)."""
+    m = re.fullmatch(r"(\d+)-(\d+)", span or "")
+    if not m or int(m.group(1)) >= int(m.group(2)):
+        raise UsageError(f"--cols needs a y range in image pixels such as 120-150, got '{span}'")
+    width, height = image.width, image.height
+    y0, y1 = max(0, int(m.group(1))), min(height, int(m.group(2)))
+    background = image.counts().most_common(1)[0][0]
+    factor = scale_factor(width)
+    rows = [list(image.row_pixels(y)) for y in range(y0, y1, 2)]
+
+    def hit(x: int) -> bool:
+        return any(sum(abs(a - b) for a, b in zip(row[x], background)) > 12 for row in rows)
+
+    print(f"  blocks in y {y0}-{y1} px, background {hexcolor(background)}, shown at 1x (scale {factor}x): left, width")
+    start = None
+    for x in range(width + 1):
+        on = x < width and hit(x)
+        if on and start is None:
+            start = x
+        elif not on and start is not None:
+            print(f"  {start / factor:7.1f}  {(x - start) / factor:6.1f}")
+            start = None
+    print("  Text: cap height is about 0.7 x font size; to confirm a size, compare a rendered text width with the source.")
+
+
+def nearest_passing(text: str, background: str, target: float = 4.5) -> str | None:
+    """The shade of background closest in lightness (same hue and saturation) that gives text at least target:1."""
+    import colorsys
+    r, g, b = (int(background[i:i + 2], 16) / 255 for i in (1, 3, 5))
+    h, l, s = colorsys.rgb_to_hls(r, g, b)
+    for step in range(1, 201):
+        for sign in (-1, 1):
+            lightness = l + sign * step / 200
+            if 0 <= lightness <= 1:
+                shade = hexcolor(tuple(round(c * 255) for c in colorsys.hls_to_rgb(h, lightness, s)))
+                if contrast(text, shade) >= target:
+                    return shade
+    return None
+
+
 def scale_hint(width: int) -> str:
     hints = []
     for factor in (1, 2, 3):
@@ -222,11 +265,25 @@ def run(argv: list[str]) -> int:
         verdict = "AA pass" if ratio >= 4.5 else "AA pass for large text only" if ratio >= 3 else "AA fail"
         shown = "" if (text, backdrop) == (argv[1].lower(), argv[2].lower()) else f" (as {text} on {backdrop})"
         print(f"{argv[1]} on {argv[2]}: {ratio:.2f}:1 ({verdict}){shown}")
+        if "--fix" in argv:
+            if ratio >= 4.5:
+                print("  already passes AA; nothing to fix")
+            else:
+                shade = nearest_passing(text, backdrop)
+                if shade:
+                    print(f"  nearest AA shade: {shade} ({contrast(text, shade):.2f}:1); keep {argv[2]} in the token "
+                          "comment as the source value and ask the designer to confirm")
+                else:
+                    print("  no shade of this background passes with that text; change the text color instead")
         return 0
     path = Path(argv[0])
     image = decode_png(path)
     width, height = image.width, image.height
     print(f"{path.name}: {width}x{height} px; likely scale: {scale_hint(width)}")
+    if "--cols" in argv:
+        span = argv[argv.index("--cols") + 1] if argv.index("--cols") + 1 < len(argv) else ""
+        print_cols(image, span)
+        return 0
     if "--rows" in argv:
         span = argv[argv.index("--rows") + 1] if argv.index("--rows") + 1 < len(argv) else ""
         print_rows(image, span)

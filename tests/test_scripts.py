@@ -345,5 +345,69 @@ class ReleaseAuditGate(unittest.TestCase):
         errors = self.build.release_audit("1.9.0", REPO)
         self.assertTrue(errors and "1.9" in errors[0], errors)
 
+class TrialFeedback(ExampleOutput):
+    """Fresh-agent trial on 2026-11-05 (docs/06_release-pipeline-plan.md P-D13): items 2, 5, 10, 13, 17."""
+
+    def warnings(self) -> str:
+        return "\n".join(l for l in run("check_output.py", self.out).stdout.splitlines() if l.startswith("WARN"))
+
+    def set_display(self, value_and_comment: str) -> None:
+        import re
+        css = self.out / "design-tokens" / "tokens.css"
+        css.write_text(re.sub(r"  --font-family-display: [^\n]+", "  --font-family-display: " + value_and_comment,
+                              css.read_text(encoding="utf-8")), encoding="utf-8")
+        run("tokens_json.py", css)
+
+    def test_mockup_font_in_fidelity_mode_is_allowed(self) -> None:
+        self.set_display('"Inter", sans-serif; /* indicative · fidelity: measured from login.png */')
+        self.assertNotIn("display font", self.warnings())
+
+    def test_default_web_face_without_fidelity_still_warns(self) -> None:
+        self.set_display('"Inter", sans-serif; /* indicative · assumed */')
+        self.assertIn("common default face", self.warnings())
+
+    def test_unbundled_fonts_are_reported(self) -> None:
+        shutil.rmtree(self.out / "prototype" / "fonts")
+        index = self.out / "prototype" / "index.html"
+        index.write_text(index.read_text(encoding="utf-8").replace('  <link rel="stylesheet" href="fonts/fonts.css">\n', ""), encoding="utf-8")
+        self.assertIn("not bundled", self.warnings())
+
+    def test_bundled_example_has_no_font_warning(self) -> None:
+        self.assertNotIn("not bundled", self.warnings())
+
+    def test_token_description_becomes_dollar_description(self) -> None:
+        css = self.out / "design-tokens" / "tokens.css"
+        text = css.read_text(encoding="utf-8").replace(
+            "  --color-primary: #3e7c59;          /* fixed · brand.md Moss, primary action */",
+            "  --color-primary: #3e7c59;          /* fixed · brand.md Moss · Main actions and progress */")
+        css.write_text(text, encoding="utf-8")
+        out = run("tokens_json.py", css, "--stdout").stdout
+        import json as _json
+        data = _json.loads(out)
+        self.assertEqual(data["color"]["primary"]["$description"], "Main actions and progress")
+        self.assertEqual(data["color"]["primary"]["$extensions"]["design-to-dev"]["source"], "brand.md Moss")
+        self.assertNotIn("$description", data["color"]["page"])
+
+    def test_cols_measures_horizontal_blocks(self) -> None:
+        r = run("palette.py", REPO / "assets" / "design-to-dev-icon.png", "--cols", "400-420")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("left", r.stdout)
+        self.assertRegex(r.stdout, r"\n\s+\d+\.\d\s+\d+\.\d")
+        bad = run("palette.py", REPO / "assets" / "design-to-dev-icon.png", "--cols", "x")
+        self.assertEqual(bad.returncode, 2)
+
+    def test_contrast_fix_finds_nearest_passing_shade(self) -> None:
+        r = run("palette.py", "--contrast", "#ffffff", "#6d78d5", "--fix")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        import re as _re
+        shade = _re.search(r"nearest AA shade: (#[0-9a-f]{6})", r.stdout)
+        self.assertTrue(shade, r.stdout)
+        check = run("palette.py", "--contrast", "#ffffff", shade.group(1)).stdout
+        self.assertIn("AA pass", check)
+        self.assertNotIn("large text only", check)
+        ok = run("palette.py", "--contrast", "#000000", "#ffffff", "--fix").stdout
+        self.assertIn("already passes", ok)
+
+
 if __name__ == "__main__":
     unittest.main()

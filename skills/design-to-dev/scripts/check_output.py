@@ -192,9 +192,11 @@ def check_prototype(out: Path, entry: Path, default_stack: bool, tokens: set[str
     return routes, marks
 
 
-SYSTEM_FONTS = {"system-ui", "-apple-system", "blinkmacsystemfont", "sf pro text", "sf pro display", "segoe ui", "roboto",
-                "arial", "helvetica", "helvetica neue", "inter", "pingfang sc", "hiragino sans gb", "microsoft yahei",
+SYSTEM_FONTS = {"system-ui", "-apple-system", "blinkmacsystemfont", "sf pro text", "sf pro display", "segoe ui",
+                "arial", "helvetica", "helvetica neue", "pingfang sc", "hiragino sans gb", "microsoft yahei",
                 "sans-serif", "serif", "ui-sans-serif", "ui-serif"}
+# Web fonts so common they read as "no choice made"; fine when a mockup uses them (fidelity mode).
+DEFAULT_WEB_FONTS = {"inter", "roboto", "open sans", "lato", "montserrat", "poppins"}
 SPACING_PROPS = re.compile(r"^(margin|padding)(-(top|right|bottom|left|block|inline)(-(start|end))?)?$|^(row-|column-|grid-)?gap$")
 WEIGHT_WORDS = {"normal": "400", "bold": "700"}
 # One declaration, optionally followed by its own comment (also after a closing brace): "padding: 6px; /* off-scale: … */"
@@ -286,12 +288,21 @@ def check_visual(out: Path, entry: Path, tokens_css: str, r: Report) -> None:
         r.warn(f"{len(weights)} font weights in use ({', '.join(sorted(weights))}); keep to 3 for text plus 1 for display")
     if animated and not reduced:
         r.warn("styles animate but never handle prefers-reduced-motion")
-    display = resolve(tokens.get("font-family-display") or tokens.get("font-family-base", ""), tokens)
+    display_name = "font-family-display" if "font-family-display" in tokens else "font-family-base"
+    display = resolve(tokens.get(display_name, ""), tokens)
     first = display.split(",")[0].strip().strip("'\"").lower()
-    if first in SYSTEM_FONTS:
+    line = re.search(rf"--{display_name}\s*:[^\n]*", tokens_css)
+    fidelity = bool(line and re.search(r"/\*[^*]*\bfidelity\b", line.group(0), re.I))
+    if not fidelity and first in SYSTEM_FONTS:
         r.warn(f"display font '{first}' is a system/default face; choose a distinctive face for the direction and bundle it "
                "with fetch_fonts.py, unless the VI specifies a system font")
+    elif not fidelity and first in DEFAULT_WEB_FONTS:
+        r.warn(f"display font '{first}' is a common default face; choose a distinctive face for the direction, or, if a "
+               f"mockup uses it, write 'fidelity' in the --{display_name} comment")
     fonts_css = entry / "fonts" / "fonts.css"
+    if first and first not in SYSTEM_FONTS and not fonts_css.is_file():
+        r.warn(f"font '{first}' is not bundled (no prototype/fonts/fonts.css), so the prototype renders with whatever the "
+               "computer has; bundle it with fetch_fonts.py, or record it as TBD and name the face the screenshots used")
     if fonts_css.is_file():
         for src in re.findall(r"url\(([^)]+)\)", fonts_css.read_text(encoding="utf-8")):
             if not (fonts_css.parent / src.strip("'\"")).is_file():

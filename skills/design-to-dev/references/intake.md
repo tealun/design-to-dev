@@ -4,13 +4,13 @@
 
 | Input | How to read it | What to extract |
 | --- | --- | --- |
-| Screenshot or exported image | Look at it at full size. For PNG run `python3 <skill-dir>/scripts/palette.py <image>`: exact colors by share, plus the likely scale (780 px wide = 2× of a 390pt phone; divide every measured size by the scale). Use `--at x,y` to read one element's color and `--rows x0-x1` to read vertical positions and heights of the blocks in a column. | Pages, regions, components, copy, exact colors, type sizes, spacing rhythm, icons, which states are shown, and links that lead to pages not in the material. |
+| Screenshot or exported image | Look at it at full size. For PNG run `python3 <skill-dir>/scripts/palette.py <image>`: exact colors by share, plus the likely scale (780 px wide = 2× of a 390pt phone; divide every measured size by the scale). Use `--at x,y` to read one element's color, `--rows x0-x1` to read vertical positions and heights of the blocks in a column, and `--cols y0-y1` for horizontal positions and widths in a band (column width, button width, text width). Cap height is about 0.7 × font size; confirm a size by comparing a rendered text width with the source, not glyph height. | Pages, regions, components, copy, exact colors, type sizes, spacing rhythm, icons, which states are shown, and links that lead to pages not in the material. |
 | Figma link | With a Figma MCP server: `get_metadata` for the frame list, `get_screenshot` per frame, `get_variable_defs` for variables and styles, `get_design_context` for exact values of a frame. Without one: ask for exported PNGs of each frame plus a screenshot of the local styles panel. | Same as screenshots, plus exact values and existing variable names. Reuse the file's variable names when they are sensible. |
 | Brand guidelines (PDF, doc, page) | Read the color, typography, logo, voice and do/don't sections. | Fixed values: brand colors, fonts, logo rules, tone of voice. These are usually Fixed. |
 | Claude Design or other generated output | HTML: read the CSS for values and the DOM for structure. Image or text: treat as screenshot or intent. | Structure and values; treat generated choices the designer did not confirm as Indicative. |
 | Plain-text intent | Read for users, jobs, pages, flow, tone. | Pages and flow; every visual decision you make is Indicative. |
 
-Material that is not yours to copy: when the screenshot is another company's product used as reference, keep its layout and interaction ideas but replace its name, logo and distinctive brand assets with placeholders.
+Material that is not yours to copy: when the screenshot is another company's product, it is a reference even if the user calls it their design. Keep its layout and interaction ideas (fidelity mode for layout, spacing and shape), mark its sampled colors Indicative and its brand color TBD, ask whether to keep them, and replace its name, logo and distinctive brand assets with placeholders.
 
 Assets: list every logo, icon, photo and illustration you see. Only files the designer supplies are used as-is; everything else becomes a placeholder marked TBD.
 

@@ -6,7 +6,7 @@ The template files are a neutral refined-minimal starting point. Their system di
 
 Two modes:
 
-- **Fidelity mode** — the designer gave mockups or a VI. Match them; their values win. Use this reference only for parts the design does not cover (states, placeholders, motion, gaps).
+- **Fidelity mode** — the designer gave mockups or a VI. Match them; their values win, including a font and text sizes that this reference would otherwise reject (mark the font token comment `fidelity`). A third-party product's screenshot gives layout fidelity only; see the intake reference. Use this reference only for parts the design does not cover (states, placeholders, motion, gaps).
 - **Direction mode** — there is only an idea, a brief or loose references. Lock a direction (below) and design with intent.
 
 ## 1. Where the look comes from
@@ -92,7 +92,7 @@ Never stack effects to look busy. Restraint is also a direction.
 | --- | --- |
 | Hierarchy | Built with size, weight and color, not boxes. One focal point per screen. |
 | Text color | Three at most (primary, secondary, tertiary); near-black, not pure black, for large areas. |
-| Contrast | WCAG AA for all text (`palette.py --contrast`). When the source design fails, use the nearest passing shade, keep the original in the token comment, add an open question. |
+| Contrast | WCAG AA for all text (`palette.py --contrast`). When the source design fails, use the nearest passing shade (`--contrast <text> <background> --fix`), keep the original in the token comment, add an open question. |
 | Spacing | 4px scale (1px and 2px allowed for hairline offsets). Section gaps larger than item gaps. |
 | Surfaces | One elevation per region; hairline first, soft shadow second; no card inside a card. |
 | Radius | One family; nested radius = outer radius − padding. |
@@ -106,7 +106,7 @@ Never stack effects to look busy. Restraint is also a direction.
 
 Two parts. Do not self-grade the first part: the script grades it.
 
-**A. Objective, run by `check_output.py`** (warnings must be fixed or explained in the close): text below 12px, spacing off the 4px scale, more than 3 text weights + 1 display weight, animation without reduced-motion handling, a system/default display face, missing bundled font files. Contrast comes from `palette.py --contrast`; positions against a source come from `palette.py --rows` (blocks within 4px).
+**A. Objective, run by `check_output.py`** (warnings must be fixed or explained in the close): text below 12px, spacing off the 4px scale, more than 3 text weights + 1 display weight, animation without reduced-motion handling, a system or common default display face (accepted when its token comment says `fidelity`), fonts not bundled or missing font files. Contrast comes from `palette.py --contrast`; positions against a source come from `palette.py --rows` (blocks within 4px).
 
 **B. Judgement, from the screenshots of every page and state** — answer each with what you saw, not “pass”:
 

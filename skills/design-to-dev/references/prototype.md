@@ -36,8 +36,8 @@ Proto.start({ name: 'Readlog', home: '/', lang: 'zh' })   // last line of pages.
 
 For every page:
 
-- Data pages declare `states: ['default', 'empty', 'loading', 'error']` and render each one. Detail pages without a list may skip `empty`.
-- Forms: required fields, inline error under the field, submit button disabled or busy while saving, error toast and preserved input when `Proto.fake()` rejects, success feedback and navigation when it resolves.
+- Data pages declare `states: ['default', 'empty', 'loading', 'error']` and render each one. Detail pages without a list may skip `empty`. Pages without data (sign-in, settings) declare `['default', 'error']` and show loading on the busy button.
+- Forms: required fields, inline error under the field, submit button `disabled` with `aria-busy="true"` while saving (the template keeps its color), error toast and preserved input when `Proto.fake()` rejects, success feedback and navigation when it resolves.
 - Every link and button leads somewhere real in the prototype or is marked TBD with a note (“Share: not in scope”).
 - Escape any text that came from the user or the store with `Proto.esc()`.
 - Use semantic elements: `button` for actions, `a href="#/…"` for navigation, `label` for inputs.
@@ -47,6 +47,8 @@ For every page:
 ## Flow edges, assets and demo accounts
 
 - **Flow ends outside the design:** add one stub page (for example `/signed-in`) that says the flow ended, mark it `data-spec="tbd"`, and list it in the HANDOFF page table with level TBD. Do not design it.
+- **Undesigned step in the middle of the flow:** if the brief names it, build the minimum from components already on screen, mark the page TBD, and ask which variant (password or magic link). If the brief does not name it, use `data-out`.
+- **Third-party sign-in (Google, Apple, SSO):** the button goes busy, `Proto.fake()` resolves to a fictional account, and the flow moves to the next page. Never draw the provider's screens. With “fail next request” it returns to the page with an error banner.
 - **Links to pages not in scope:** `<a href="#" data-out>Forgot password?</a>`. proto-kit shows a “not in this prototype” toast. Each becomes an open question.
 - **Assets not supplied:** a neutral placeholder that looks intentional (initials in a soft neutral circle, a quiet line icon with the asset's role as its label; see the visual direction reference), marked TBD, listed in HANDOFF section 3 under Assets.
 - **Sign-in, payment and other sensitive forms:** accept only a fictional demo account from `data.js` (e.g. demo / demo1234), state it in HANDOFF section 0, and never send input anywhere.

@@ -5,6 +5,7 @@
 | Signal | Level |
 | --- | --- |
 | The designer said it must match; it is in the brand guide; it is a Figma variable or component the team owns | Fixed 【确定】 |
+| Named in the brief as the core flow (for example “Google first, then email”) | The order and presence are Fixed; how each element looks follows the rows above |
 | Visible in the design but measured, approximated, or a reasonable variant you derived. This includes font weight, size and spacing measured from an image, in tokens and in element marks alike | Indicative 【示意】 |
 | You had to invent behavior, copy or data rules; inputs conflict; the font or asset is unavailable; the design does not cover it; a stub page or a `data-out` link | TBD 【待定】 |
 
@@ -24,7 +25,7 @@ Ask the designer to confirm only the items that would change a lot of work if wr
 
 ## Writing HANDOFF.md
 
-Start from [../templates/HANDOFF.md](../templates/HANDOFF.md) and replace every `{{…}}`. Keep the numbered section headings; the checker looks for them.
+Start from [../templates/HANDOFF.md](../templates/HANDOFF.md) and replace every `{{…}}`. Keep the numbered section headings; the checker looks for them. Headings may be bilingual, English only or Chinese only: drop the other language for a single-language designer. The section 6 count is marks in the source files, as the checker reports it, not tags on screen (a helper used on three pages counts once).
 
 - Pages: one row per `Proto.page()`, with its route in backticks and the states it supports.
 - Flow: a Mermaid `flowchart` of the core flow and important branches (error, empty), plus numbered steps.

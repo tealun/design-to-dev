@@ -2,7 +2,7 @@
 
 ## What to extract
 
-The names below are the ones `templates/tokens.css` provides; most are read by `templates/styles.css`, the rest are ready for your pages. Keep them (change values, not names) so the template styles keep working; add new names for anything extra.
+The names below are the ones `templates/tokens.css` provides; most are read by `templates/styles.css`, the rest are ready for your pages. Keep them (change values, not names) so the template styles keep working; add new names for anything extra (`--space-9`, `--size-logo`). If the design collapses two steps to one value (body text at the template's `sm`), keep both names with the same value and say so in the comment.
 
 | Group | Tokens the template provides | Notes |
 | --- | --- | --- |
@@ -40,8 +40,11 @@ Every token gets a level (`fixed`, `indicative`, `tbd`) and a source. Defaults:
 :root {
   --color-primary: #2f6f4f; /* fixed · brand guide p.3 */
   --space-4: 16px;          /* indicative · measured */
+  --color-accent: #b4561f;  /* fixed · brand guide p.3 · Links and selection */
 }
 ```
+
+An optional third part, `level · source · description`, becomes the token's `$description` in tokens.json (as on `--color-accent`). It is never inherited by the lines below.
 
 ## tokens.json (W3C Design Tokens format)
 
@@ -51,7 +54,6 @@ Every token gets a level (`fixed`, `indicative`, `tbd`) and a source. Defaults:
     "primary": {
       "$value": "#2f6f4f",
       "$type": "color",
-      "$description": "Main actions",
       "$extensions": { "design-to-dev": { "level": "fixed", "source": "brand guide p.3" } }
     }
   }

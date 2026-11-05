@@ -80,6 +80,6 @@
   --size-control: 40px;              /* indicative · refined minimal preset */
   --size-touch-target: 44px;         /* fixed · accessibility minimum on touch screens */
   --size-icon: 16px;                 /* indicative · refined minimal preset */
-  --layout-content-width: 480px;
+  --layout-content-width: 440px;
   --layout-form-width: 360px;
 }

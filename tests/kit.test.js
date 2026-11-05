@@ -91,6 +91,31 @@ function writeData(root, title) {
     assert.match(await page.textContent('#app'), /not found/i, 'malformed URL should show the not-found message');
   });
 
+  await test('template column: content width equals the token; busy primary keeps its color', async () => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto(url + '#/');
+    const m = await page.evaluate(() => {
+      const app = document.getElementById('app');
+      const cs = getComputedStyle(app);
+      const content = app.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+      const token = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--layout-content-width'));
+      const b = document.createElement('button');
+      b.className = 'btn btn--primary'; b.disabled = true; b.setAttribute('aria-busy', 'true'); b.textContent = 'Saving';
+      app.appendChild(b);
+      const busy = getComputedStyle(b).backgroundColor;
+      const d = document.createElement('button'); // a fresh element, so no background transition is in flight
+      d.className = 'btn btn--primary'; d.disabled = true; d.textContent = 'Save';
+      app.appendChild(d);
+      const disabled = getComputedStyle(d).backgroundColor;
+      const probe = document.createElement('i'); probe.style.color = 'var(--color-primary)'; app.appendChild(probe);
+      return { content, token, busy, disabled, primary: getComputedStyle(probe).color };
+    });
+    await page.setViewportSize({ width: 390, height: 844 });
+    assert.strictEqual(m.content, m.token, `content ${m.content}px vs token ${m.token}px`);
+    assert.strictEqual(m.busy, m.primary, 'busy primary button should keep the primary color');
+    assert.notStrictEqual(m.disabled, m.primary, 'a plain disabled button still looks disabled');
+  });
+
   await test('no page errors', async () => {
     assert.deepStrictEqual(errors, []);
   });

@@ -8,6 +8,7 @@ Usage:
 tokens.css convention (one token per line inside :root):
     --color-primary: #2f6f4f;   /* fixed · brand guide p.3 */
 A line without a comment inherits the level and source of the token above it.
+An optional third part, `level · source · description`, becomes that token's $description (never inherited).
 Levels: fixed | indicative | tbd. Python 3 standard library only.
 """
 from __future__ import annotations
@@ -60,11 +61,12 @@ def parse_css(text: str) -> list[dict]:
             continue
         name, value, comment = m.groups()
         if comment:
-            parts = [p.strip() for p in re.split(r"·|\|", comment, maxsplit=1)]
+            parts = [p.strip() for p in re.split(r"·|\|", comment, maxsplit=2)]
             if parts[0].lower() in LEVELS:
                 level = parts[0].lower()
                 source = parts[1] if len(parts) > 1 and parts[1] else source
-        tokens.append({"name": name, "value": value, "level": level, "source": source})
+        description = parts[2] if comment and parts[0].lower() in LEVELS and len(parts) > 2 and parts[2] else ""
+        tokens.append({"name": name, "value": value, "level": level, "source": source, "description": description})
     return tokens
 
 
@@ -75,11 +77,10 @@ def to_json(tokens: list[dict]) -> dict:
         node = out.setdefault(group, {})
         if key in node:
             raise SystemExit(f"duplicate token {tok['name']}")
-        node[key] = {
-            "$value": tok["value"],
-            "$type": TYPES.get(group, "string"),
-            "$extensions": {"design-to-dev": {"level": tok["level"], "source": tok["source"]}},
-        }
+        node[key] = {"$value": tok["value"], "$type": TYPES.get(group, "string")}
+        if tok["description"]:
+            node[key]["$description"] = tok["description"]
+        node[key]["$extensions"] = {"design-to-dev": {"level": tok["level"], "source": tok["source"]}}
     return out
 
 

@@ -96,5 +96,5 @@
   --size-icon: 16px;                 /* indicative · refined minimal preset */
   --size-cover-sm: 40px;             /* indicative · list cover width, 5:7 ratio */
   --size-cover-lg: 84px;             /* indicative · detail cover width */
-  --layout-content-width: 480px;     /* indicative · phone first, centered on desktop */
+  --layout-content-width: 440px;     /* indicative · phone first, centered on desktop */
 }

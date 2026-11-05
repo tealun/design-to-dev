@@ -27,7 +27,7 @@ img, svg { display: block; }
 
 /* ---------- layout: one calm column, phone first ---------- */
 .app {
-  max-width: var(--layout-content-width);
+  max-width: calc(var(--layout-content-width) + 2 * var(--space-5)); /* the token is the content width; padding sits outside it */
   min-height: 100vh;
   margin: 0 auto;
   padding: var(--space-6) var(--space-5) var(--space-12);
@@ -67,6 +67,9 @@ img, svg { display: block; }
 .btn--ghost:hover { background: var(--color-surface-sunken); color: var(--color-text); }
 .btn:disabled, .btn[aria-disabled="true"] { background: var(--color-disabled-bg); color: var(--color-disabled-text); border-color: transparent; box-shadow: none; cursor: not-allowed; transform: none; }
 .btn[aria-busy="true"] { cursor: progress; }
+/* Busy is not disabled: a working button keeps its variant color so the action stays recognizable. */
+.btn--primary[aria-busy="true"] { background: var(--color-primary); color: var(--color-on-primary); }
+.btn--secondary[aria-busy="true"] { background: var(--color-surface); color: var(--color-text); border-color: var(--color-border); }
 .btn--block { width: 100%; }
 @media (pointer: coarse) { .btn, .field__input { height: var(--size-touch-target); } }
 
