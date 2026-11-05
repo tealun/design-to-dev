@@ -11,7 +11,7 @@
 ## 已有成果 What already exists
 
 - 可交互原型：`prototype/`（3 个页面，假数据，无后端）
-- 设计规范：`design-tokens/tokens.css`、`design-tokens/tokens.json`（42 项）
+- 设计规范：`design-tokens/tokens.css`、`design-tokens/tokens.json`（77 项）
 - 交接文档：`HANDOFF.md`（页面、流程、组件、交互、6 个待定问题）
 
 ## 核心流程 Core flow

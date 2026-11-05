@@ -2,16 +2,20 @@
 
 ## What to extract
 
-| Group | Tokens | Notes |
+The names below are the ones `templates/tokens.css` provides; most are read by `templates/styles.css`, the rest are ready for your pages. Keep them (change values, not names) so the template styles keep working; add new names for anything extra (`--space-9`, `--size-logo`). If the design collapses two steps to one value (body text at the template's `sm`), keep both names with the same value and say so in the comment.
+
+| Group | Tokens the template provides | Notes |
 | --- | --- | --- |
-| color | brand (primary, on-primary), neutrals (bg, surface, border, text, text-muted), feedback (success, warning, danger, info), state (primary-hover, primary-active, focus-ring, disabled-bg, disabled-text) | Derive hover/active by shifting lightness 6–10% when the design does not show them; mark derived ones Indicative. |
-| font | family-base, family-display (if different), weight-regular/medium/bold | Use a system stack fallback after every family. |
-| font-size + line-height | a scale such as xs, sm, md, lg, xl, 2xl | Snap screenshot measurements to the nearest step of a consistent scale (e.g. 12/14/16/20/24/32). |
-| space | 1–8 steps on a 4px base | Measure padding and gaps; snap to the base. |
-| radius | sm, md, lg, full | |
-| shadow | sm, md, lg | Write as full CSS shadow values. |
-| motion | duration-fast, duration-base, easing-standard | Only when the design or brand shows motion; otherwise Indicative defaults (120ms, 200ms, ease-out). |
-| layout | content-max-width, breakpoint-md | |
+| color, neutrals | `page` (page background), `surface` (cards, inputs), `surface-sunken`, `border`, `border-strong`, `text`, `text-secondary`, `text-tertiary` | Three text colors at most. |
+| color, actions | `primary`, `primary-hover`, `primary-active`, `on-primary`, `accent`, `accent-soft`, `focus-ring` | One accent. Derive hover/active by shifting lightness 6–10% when the design does not show them; mark derived ones Indicative. |
+| color, feedback | `success`, `success-soft`, `warning`, `warning-soft`, `danger`, `danger-soft`, `info`, `disabled-bg`, `disabled-text` | |
+| font | `font-family-base`, `font-family-display`, `font-weight-regular`, `-medium`, `-semibold` | Use a system stack fallback after every family. |
+| type scale | `font-size-xs` … `font-size-3xl`, `line-height-tight`, `line-height-base`, `letter-spacing-tight`, `letter-spacing-wide` | Snap screenshot measurements to the nearest step of a consistent scale (e.g. 12/13/14/16/20/24/32). |
+| space | `space-1` … `space-12` on a 4px base | Measure padding and gaps; snap to the base. |
+| radius | `radius-sm`, `-md`, `-lg`, `-xl`, `-full` | |
+| shadow | `shadow-xs`, `-sm`, `-md` | Write as full CSS shadow values. |
+| motion | `duration-fast`, `duration-base`, `easing-standard` | Indicative defaults when the design shows no motion. |
+| size, layout | `size-control`, `size-touch-target`, `size-icon`, `layout-content-width`, `layout-form-width` | |
 
 ## Naming
 
@@ -36,8 +40,11 @@ Every token gets a level (`fixed`, `indicative`, `tbd`) and a source. Defaults:
 :root {
   --color-primary: #2f6f4f; /* fixed · brand guide p.3 */
   --space-4: 16px;          /* indicative · measured */
+  --color-accent: #b4561f;  /* fixed · brand guide p.3 · Links and selection */
 }
 ```
+
+An optional third part, `level · source · description`, becomes the token's `$description` in tokens.json (as on `--color-accent`). It is never inherited by the lines below.
 
 ## tokens.json (W3C Design Tokens format)
 
@@ -47,7 +54,6 @@ Every token gets a level (`fixed`, `indicative`, `tbd`) and a source. Defaults:
     "primary": {
       "$value": "#2f6f4f",
       "$type": "color",
-      "$description": "Main actions",
       "$extensions": { "design-to-dev": { "level": "fixed", "source": "brand guide p.3" } }
     }
   }

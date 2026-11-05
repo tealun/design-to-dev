@@ -11,10 +11,14 @@
 | 设备 Devices | {{phone first / desktop / both}} |
 | 日期 Date | {{YYYY-MM-DD}} |
 
+## 设计方向 Design direction
+
+{{一段具体的美术指导 concrete art direction：用途 purpose；调性 tone；展示字体与正文字体 display and body faces；主色与强调色 dominant and accent；记忆点 the memorable thing。有设计稿时写“还原设计稿” fidelity mode}}
+
 ## 0. 怎么打开 How to open
 
 1. 双击 `prototype/index.html`，用浏览器打开即可，不需要安装任何东西。Double-click `prototype/index.html`.
-2. 右下角“原型工具”：切换页面和状态（默认、空、加载、报错），打开“标注”（或按 Shift+A）查看【确定】【示意】【待定】，勾选“下次请求失败”演示报错。
+2. 右下角“原型工具”：切换页面和该页支持的状态（默认、空、加载、报错）switch pages and the states each page supports，打开“标注”（或按 Shift+A）查看【确定】【示意】【待定】，勾选“下次请求失败”演示报错。
 3. 改过假数据后点“重置数据”恢复。
 4. 演示账号 Demo account（登录、支付等流程才需要 only for sign-in or payment flows）：{{demo / demo1234 或删除此行 or delete this line}}
 
@@ -22,7 +26,7 @@
 
 | 页面 Page | 路由 Route | 用途 Purpose | 状态 States | 等级 Level |
 | --- | --- | --- | --- | --- |
-| {{Home}} | `/` | {{…}} | default, empty, loading, error | 【确定】 |
+| {{Home}} | `/` | {{…}} | {{default, empty, loading, error；无数据页面 pages without data: default, error}} | 【确定】 |
 
 ## 2. 流程图 Flow
 
@@ -65,13 +69,17 @@ flowchart LR
 | 字体 Type | {{family, scale}} | 【示意】 |
 | 间距 Space | {{4px base}} | 【示意】 |
 
+视觉自查 Visual QA：A（脚本 script）{{0 条警告 / 每条的说明 warnings and reasons}}；B（截图观察 screenshots）{{焦点、记忆点、强调色位置、去 AI 味… focal point, memorable thing, accent use, slop hits}}；审美定稿 final call：待设计师评审 awaiting designer review
+
+对比度 Contrast（`palette.py --contrast` 计算 computed）：{{正文/背景 body on page 13.8:1；…}}
+
 ## 6. 标注等级 Spec levels
 
 - 【确定】Fixed：必须按设计还原。Must match the design.
 - 【示意】Indicative：表达意图，可在 tokens 范围内调整。Shows intent; adjust within the tokens.
 - 【待定】TBD：未决定，需开发或团队决定，全部列在第 8 节。Undecided; listed in section 8.
 
-| 等级 Level | 数量 Count | 主要内容 Main items |
+| 等级 Level | 数量 Count（源码中的标注数 marks in source） | 主要内容 Main items |
 | --- | --- | --- |
 | 【确定】 | {{n}} | {{…}} |
 | 【示意】 | {{n}} | {{…}} |

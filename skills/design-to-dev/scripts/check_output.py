@@ -53,6 +53,15 @@ def read(path: Path) -> str:
     return path.read_text(encoding="utf-8") if path.is_file() else ""
 
 
+def strip_non_color_hashes(text: str) -> str:
+    """Remove places where '#abc' is not a color: spec notes, href anchors, id selectors, comments."""
+    text = re.sub(r"/\*.*?\*/|(?:^|(?<=\s))//[^\n]*|<!--.*?-->", "", text, flags=re.S | re.M)
+    text = re.sub(r"data-spec-note=\\?([\"']).*?\\?\1", "", text, flags=re.S)
+    text = re.sub(r"href=\\?[\"']#[^\"'\\]*", "href=", text)
+    text = re.sub(r"(querySelector(?:All)?|getElementById|closest)\(\s*['\"][^'\"]*['\"]", r"\1(", text)
+    return text
+
+
 def css_tokens(text: str) -> dict[str, str]:
     block = re.search(r":root\s*\{(.*?)\}", text, re.S)
     if not block:
@@ -95,7 +104,14 @@ def table_rows(body: str) -> list[list[str]]:
 
 def check_tokens(out: Path, r: Report) -> set[str]:
     css_path, json_path = out / "design-tokens" / "tokens.css", out / "design-tokens" / "tokens.json"
-    css = css_tokens(read(css_path))
+    css_text = read(css_path)
+    css = css_tokens(css_text)
+    roots = re.findall(r":root\s*\{(.*?)\}", css_text, re.S)
+    if len(roots) > 1:
+        r.error(f"design-tokens/tokens.css: {len(roots)} :root blocks; only the first is read, so tokens would be lost")
+    bad = [n for n in re.findall(r"--([^\s:;]+)\s*:", roots[0] if roots else "") if not re.fullmatch(r"[a-z0-9-]+", n)]
+    if bad:
+        r.error(f"design-tokens/tokens.css: token names must be lowercase a-z, 0-9 and hyphens: {', '.join('--' + n for n in bad)}")
     if not css:
         r.error("design-tokens/tokens.css: no tokens found in a :root { } block")
     try:
@@ -159,6 +175,8 @@ def check_prototype(out: Path, entry: Path, default_stack: bool, tokens: set[str
         scan = text
         if path.suffix == ".css":
             scan = "".join(re.findall(r"\{([^{}]*)\}", re.sub(r"/\*.*?\*/", "", text, flags=re.S)))
+        else:
+            scan = strip_non_color_hashes(text)
         bad = HEX.findall(scan) + FUNC_COLOR.findall(scan)
         if bad:
             r.error(f"{rel}: raw colors {sorted(set(bad))[:5]}; use token variables")
@@ -172,6 +190,123 @@ def check_prototype(out: Path, entry: Path, default_stack: bool, tokens: set[str
     r.note(f"pages: {len(routes)} ({', '.join(routes)})")
     r.note("spec marks: " + ", ".join(f"{lvl} {marks.get(lvl, 0)}" for lvl in ("fixed", "indicative", "tbd")))
     return routes, marks
+
+
+SYSTEM_FONTS = {"system-ui", "-apple-system", "blinkmacsystemfont", "sf pro text", "sf pro display", "segoe ui",
+                "arial", "helvetica", "helvetica neue", "pingfang sc", "hiragino sans gb", "microsoft yahei",
+                "sans-serif", "serif", "ui-sans-serif", "ui-serif"}
+# Web fonts so common they read as "no choice made"; fine when a mockup uses them (fidelity mode).
+DEFAULT_WEB_FONTS = {"inter", "roboto", "open sans", "lato", "montserrat", "poppins"}
+SPACING_PROPS = re.compile(r"^(margin|padding)(-(top|right|bottom|left|block|inline)(-(start|end))?)?$|^(row-|column-|grid-)?gap$")
+WEIGHT_WORDS = {"normal": "400", "bold": "700"}
+# One declaration, optionally followed by its own comment (also after a closing brace): "padding: 6px; /* off-scale: … */"
+DECL = re.compile(r"([a-z-]+)\s*:\s*([^;{}]+?)\s*(?:;|(?=\}))\s*\}?\s*(/\*.*?\*/)?")
+LENGTH = re.compile(r"(?<![\w.#-])(-?\d*\.?\d+)(px|rem)\b")
+
+
+def resolve(value: str, tokens: dict[str, str], depth: int = 0) -> str:
+    """Replace var(--x, fallback) with the token value (or the fallback), a few levels deep."""
+    def sub(m: re.Match) -> str:
+        name, fallback = m.group(1), (m.group(2) or "").strip()
+        return tokens.get(name, fallback)
+    for _ in range(4):
+        new = re.sub(r"var\(--([a-z0-9-]+)\s*(?:,\s*([^()]*))?\)", sub, value)
+        if new == value:
+            break
+        value = new
+    return value.strip()
+
+
+def declarations(text: str):
+    """(line number, property, value, exempt) for each declaration in CSS text."""
+    for n, line in enumerate(text.splitlines(), 1):
+        for m in DECL.finditer(line):
+            exempt = bool(m.group(3) and re.match(r"/\*\s*(decorative|off-scale)\b", m.group(3)))
+            yield n, m.group(1), m.group(2), exempt
+
+
+def check_visual(out: Path, entry: Path, tokens_css: str, r: Report) -> None:
+    """Objective items of the visual QA checklist (references/visual-direction.md). Warnings, not errors,
+    because a reason may exist; the close must fix or explain each one. Exempt one declaration with a
+    comment right after it: `font-size: 9px; /* decorative: cover texture */` or `/* off-scale: … */`."""
+    tokens = dict(re.findall(r"--([a-z0-9-]+)\s*:\s*([^;]+);", tokens_css))
+    weights: set[str] = set()
+    animated = reduced = False
+
+    def lint(rel: str, n: int, prop: str, raw: str, exempt: bool) -> None:
+        nonlocal animated
+        value = resolve(raw, tokens)
+        if prop in ("animation", "transition") or prop.startswith(("animation-", "transition-")):
+            animated = True
+        if prop == "font-weight":
+            w = WEIGHT_WORDS.get(value, value)
+            if w not in ("inherit", "bolder", "lighter", "initial", "unset"):
+                weights.add(w)
+        if exempt:
+            return
+        sizes = []
+        if prop == "font-size":
+            sizes = LENGTH.findall(value)
+        elif prop == "font":
+            m = re.search(r"(-?\d*\.?\d+)(px|rem)\s*(?:/|\s)", value + " ")
+            sizes = [m.groups()] if m else []
+        for num, unit in sizes:
+            px = float(num) * (16 if unit == "rem" else 1)
+            if px < 12:
+                via = f" (from {raw.strip()})" if "var(" in raw else ""
+                r.warn(f"{rel}:{n}: {prop}: {num}{unit}{via} is below the 12px minimum for readable text")
+        if SPACING_PROPS.match(prop):
+            bad = []
+            for num, unit in LENGTH.findall(value):
+                px = abs(float(num)) * (16 if unit == "rem" else 1)
+                if px not in (0, 1, 2) and px % 4:
+                    bad.append(num + unit)
+            if bad:
+                r.warn(f"{rel}:{n}: {prop} uses {', '.join(bad)}, off the 4px scale")
+
+    for name, value in tokens.items():
+        if name.startswith("font-size-"):
+            for num, unit in LENGTH.findall(value):
+                if float(num) * (16 if unit == "rem" else 1) < 12:
+                    r.warn(f"design-tokens/tokens.css: --{name} is {num}{unit}, below the 12px minimum for readable text")
+    files = [p for p in sorted(entry.rglob("*")) if p.suffix in {".css", ".js", ".html"} and p.is_file()
+             and p.relative_to(entry).parts[0] not in ("fonts", "node_modules") and p.name != "proto-kit.js"]
+    for path in files:
+        rel = path.relative_to(out).as_posix()
+        text = path.read_text(encoding="utf-8")
+        if path.suffix == ".css":
+            reduced |= "prefers-reduced-motion" in text
+            for n, prop, value, exempt in declarations(text):
+                lint(rel, n, prop, value, exempt)
+        else:
+            # Inline styles in page code: style="…" or style=\"…\".
+            for n, line in enumerate(text.splitlines(), 1):
+                for m in re.finditer(r"style=\\?([\"'])(.*?)\\?\1", line):
+                    for _, prop, value, exempt in declarations(m.group(2)):
+                        lint(rel, n, prop, value, exempt)
+    if len(weights) > 4:
+        r.warn(f"{len(weights)} font weights in use ({', '.join(sorted(weights))}); keep to 3 for text plus 1 for display")
+    if animated and not reduced:
+        r.warn("styles animate but never handle prefers-reduced-motion")
+    display_name = "font-family-display" if "font-family-display" in tokens else "font-family-base"
+    display = resolve(tokens.get(display_name, ""), tokens)
+    first = display.split(",")[0].strip().strip("'\"").lower()
+    line = re.search(rf"--{display_name}\s*:[^\n]*", tokens_css)
+    fidelity = bool(line and re.search(r"/\*[^*]*\bfidelity\b", line.group(0), re.I))
+    if not fidelity and first in SYSTEM_FONTS:
+        r.warn(f"display font '{first}' is a system/default face; choose a distinctive face for the direction and bundle it "
+               "with fetch_fonts.py, unless the VI specifies a system font")
+    elif not fidelity and first in DEFAULT_WEB_FONTS:
+        r.warn(f"display font '{first}' is a common default face; choose a distinctive face for the direction, or, if a "
+               f"mockup uses it, write 'fidelity' in the --{display_name} comment")
+    fonts_css = entry / "fonts" / "fonts.css"
+    if first and first not in SYSTEM_FONTS and not fonts_css.is_file():
+        r.warn(f"font '{first}' is not bundled (no prototype/fonts/fonts.css), so the prototype renders with whatever the "
+               "computer has; bundle it with fetch_fonts.py, or record it as TBD and name the face the screenshots used")
+    if fonts_css.is_file():
+        for src in re.findall(r"url\(([^)]+)\)", fonts_css.read_text(encoding="utf-8")):
+            if not (fonts_css.parent / src.strip("'\"")).is_file():
+                r.error(f"prototype/fonts/fonts.css points to missing font file {src}")
 
 
 def check_handoff(out: Path, routes: list[str], marks: dict[str, int], r: Report) -> None:
@@ -209,10 +344,25 @@ def check_handoff(out: Path, routes: list[str], marks: dict[str, int], r: Report
     r.note(f"open questions: {len(questions)}")
 
 
-def check_brief(out: Path, mode: str, r: Report) -> None:
+def handoff_mode(out: Path) -> str | None:
+    """Mode from the HANDOFF 'Handoff to / 交接对象' row: 'A' or 'B', None when not stated."""
+    for line in read(out / "HANDOFF.md").splitlines():
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if len(cells) >= 2 and ("handoff to" in cells[0].lower() or "交接对象" in cells[0]):
+            m = re.match(r"^\W*([AB])\b", cells[1].replace("：", ":"), re.I)
+            return m.group(1).upper() if m else None
+    return None
+
+
+def check_brief(out: Path, mode: str | None, r: Report) -> None:
     brief = read(out / "PLANNER_BRIEF.md")
-    if mode.upper() == "B" and not brief:
-        r.error("mode B needs PLANNER_BRIEF.md")
+    stated = handoff_mode(out)
+    if mode and stated and mode.upper() != stated:
+        r.error(f"--mode {mode.upper()} but HANDOFF.md says the handoff is mode {stated}")
+    mode = (mode or stated or "A").upper()
+    r.note(f"mode: {mode}")
+    if mode == "B" and not brief:
+        r.error("mode B needs PLANNER_BRIEF.md; write it before running this check")
     if brief and "{{" in brief:
         r.error("PLANNER_BRIEF.md: unfilled template placeholder {{…}}")
 
@@ -220,7 +370,7 @@ def check_brief(out: Path, mode: str, r: Report) -> None:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("output", type=Path)
-    ap.add_argument("--mode", default="A", choices=["A", "B", "a", "b"])
+    ap.add_argument("--mode", choices=["A", "B", "a", "b"], help="default: read from HANDOFF.md 'Handoff to', else A")
     ap.add_argument("--prototype-entry", type=Path, help="folder with page sources for non-default stacks")
     args = ap.parse_args()
     out: Path = args.output
@@ -232,6 +382,7 @@ def main() -> int:
     entry = args.prototype_entry or out / "prototype"
     tokens = check_tokens(out, r)
     routes, marks = check_prototype(out, entry, default_stack, tokens, r)
+    check_visual(out, entry, read(out / "design-tokens" / "tokens.css"), r)
     check_handoff(out, routes, marks, r)
     check_brief(out, args.mode, r)
     for n in r.notes:

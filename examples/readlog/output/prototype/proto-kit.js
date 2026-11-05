@@ -9,6 +9,7 @@
  *   - spec marks:        elements with data-spec="fixed|indicative|tbd" and data-spec-note="…", shown with Shift+A
  *   - toast:             Proto.toast('Saved')
  *   - out of scope:      <a href="#" data-out> shows a "not in this prototype" toast instead of navigating
+ *   - page-load:         #app gets .pk-enter when the route changes, for a staggered entrance in styles.css
  * Replace routing, store and fake() with your real stack; keep the tokens and the page structure.
  */
 (function () {
@@ -53,6 +54,7 @@
   var routes = [];
   var options = { name: 'prototype', home: '/', lang: 'zh' };
   var failNext = false;
+  var lastPath = null;
   var specOn = false;
   var current = null;
 
@@ -62,11 +64,19 @@
 
   function storageKey() { return 'proto:' + options.name; }
 
+  /* Fingerprint of data.js, saved with the store: when data.js changes, old saved data is discarded. */
+  function mockFingerprint() {
+    var text = JSON.stringify(window.MOCK === undefined ? {} : window.MOCK);
+    var hash = 0;
+    for (var i = 0; i < text.length; i++) hash = (hash * 31 + text.charCodeAt(i)) | 0;
+    return String(hash);
+  }
+
   function loadStore() {
     try {
-      var saved = localStorage.getItem(storageKey());
-      if (saved) return JSON.parse(saved);
-    } catch (e) { /* storage unavailable: fall back to fresh mock data */ }
+      var saved = JSON.parse(localStorage.getItem(storageKey()) || 'null');
+      if (saved && saved.mock === mockFingerprint()) return saved.data;
+    } catch (e) { /* storage unavailable or unreadable: fall back to fresh mock data */ }
     return clone(window.MOCK);
   }
 
@@ -83,12 +93,17 @@
     /** Navigate. Proto.go('/book/2') or Proto.go('/', { state: 'empty' }) */
     go: function (path, query) {
       var qs = query ? '?' + new URLSearchParams(query).toString() : '';
+      var before = location.hash;
       location.hash = '#' + path + qs;
+      // Same URL: the browser fires no hashchange, so render here or the page stays as it was.
+      if (location.hash === before) render();
     },
 
     /** Persist the fake data store after you change it. */
     save: function () {
-      try { localStorage.setItem(storageKey(), JSON.stringify(Proto.store)); } catch (e) { /* ignore */ }
+      try {
+        localStorage.setItem(storageKey(), JSON.stringify({ mock: mockFingerprint(), data: Proto.store }));
+      } catch (e) { /* ignore */ }
     },
 
     /** Simulated request: resolves with result after ms, or rejects once if "Fail next request" is on. */
@@ -162,7 +177,11 @@
       var m = routes[i].re.exec(path);
       if (m) {
         var params = {};
-        routes[i].keys.forEach(function (k, j) { params[k] = decodeURIComponent(m[j + 1]); });
+        try {
+          routes[i].keys.forEach(function (k, j) { params[k] = decodeURIComponent(m[j + 1]); });
+        } catch (e) {
+          return null; // malformed %-encoding in the URL: show "page not found", never a blank page
+        }
         return { route: routes[i], params: params };
       }
     }
@@ -188,6 +207,10 @@
     document.title = (def.title ? def.title + ' · ' : '') + options.name;
     root.innerHTML = def.render(ctx);
     if (def.mount) def.mount(root, ctx);
+    // Page-load sequence on navigation only: a refresh after saving must not replay it.
+    root.classList.remove('pk-enter');
+    if (loc.path !== lastPath) { void root.offsetWidth; root.classList.add('pk-enter'); }
+    lastPath = loc.path;
     window.scrollTo(0, 0);
     syncToolbar();
     drawSpecs();

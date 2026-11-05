@@ -1,0 +1,60 @@
+name: release
+
+# Publishing happens only by pushing a v<version> tag; the version comes from
+# .claude-plugin/plugin.json. Packages are built here and attached to the Release,
+# never committed. See AGENTS.md and docs/06_release-pipeline-plan.md.
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: test dependency (WorkBuddy frontmatter must parse as YAML; pinned)
+        run: python3 -m pip install pyyaml==6.0.2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: WorkBuddy package validates
+        run: python3 scripts/build_suite.py --check
+      - name: evolution ledger and compliance log are well-formed
+        run: python3 scripts/check_ledger.py
+      - name: script unit tests
+        run: python3 -m unittest discover -s tests
+      - name: the bundled example passes the output checker
+        run: python3 skills/design-to-dev/scripts/check_output.py examples/readlog/output --mode B
+      - name: plugin checks for this tag
+        run: |
+          previous=$(git describe --tags --abbrev=0 "${GITHUB_REF_NAME}^" 2>/dev/null || true)
+          python3 scripts/build_plugin.py --check --tag "$GITHUB_REF_NAME" ${previous:+--since "$previous"}
+      - name: build the plugin and the WorkBuddy package
+        run: |
+          python3 scripts/build_plugin.py
+          python3 scripts/build_suite.py
+      - name: validate with the Claude Code CLI (no skip when it is unavailable)
+        run: npx -y @anthropic-ai/claude-code@2.1.318 plugin validate dist/design-to-dev/.claude-plugin/plugin.json
+      - name: release notes from CHANGELOG
+        run: python3 scripts/build_plugin.py --notes "$RUNNER_TEMP/notes.md"
+      - name: create the GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          gh release create "$GITHUB_REF_NAME" \
+            "dist/design-to-dev-${version}.plugin" \
+            "dist/design-to-dev-${version}.zip" \
+            "dist/design-to-dev-workbuddy-${version}.zip" \
+            "dist/design-to-dev-workbuddy-${version}-flat.zip" \
+            --title "design-to-dev ${version}" \
+            --notes-file "$RUNNER_TEMP/notes.md"

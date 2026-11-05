@@ -1,7 +1,12 @@
 name: check
 
+# Every push and pull request: platform rules, packages build, tests. Same role as
+# tealun-dev-pdca's suite-package.yml. Nothing is committed or published here.
+
 on:
   push:
+    # the plugin branch holds only the built plugin (see plugin-branch.yml); nothing here applies to it
+    branches-ignore: [plugin]
   pull_request:
 
 jobs:
@@ -9,10 +14,33 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Platform rules and design-to-dev.zip are up to date
-        run: python3 scripts/build.py --check
-      - name: The bundled example passes the output checker
+      - name: test dependency (WorkBuddy frontmatter must parse as YAML; pinned)
+        run: python3 -m pip install pyyaml==6.0.2
+      - name: plugin manifest, skill, README, repository export, release audit, version bump since the last tag
+        run: |
+          previous=$(git describe --tags --abbrev=0 2>/dev/null || true)
+          python3 scripts/build_plugin.py --check ${previous:+--since "$previous"}
+      - name: WorkBuddy package validates and builds
+        run: python3 scripts/build_suite.py --check
+      - name: evolution ledger and compliance log are well-formed
+        run: python3 scripts/check_ledger.py
+      - name: the bundled example passes the output checker
         run: python3 skills/design-to-dev/scripts/check_output.py examples/readlog/output --mode B
+      - name: script unit tests
+        run: python3 -m unittest discover -s tests -v
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Playwright with Chromium (pinned)
+        run: |
+          npm install --no-save playwright@1.63.0
+          npx playwright install --with-deps chromium
+      - name: proto-kit browser tests
+        run: node tests/kit.test.js
+      - name: Readlog example browser tests
+        run: node tests/example.test.js

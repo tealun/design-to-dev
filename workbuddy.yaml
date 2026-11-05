@@ -1,5 +1,6 @@
-# WorkBuddy display fields. scripts/build.py injects them into the packaged SKILL.md frontmatter;
-# the source SKILL.md keeps only Agent Skills standard fields. Limits are checked by build.py.
+# WorkBuddy display fields. scripts/build_suite.py injects them, plus the version from
+# .claude-plugin/plugin.json, into the packaged SKILL.md frontmatter; the source SKILL.md keeps only
+# Agent Skills standard fields. Rules and checks: docs/workbuddy-rules.md.
 display_name: "设计转原型 design-to-dev"
 display_name_en: "Design to Dev Prototype"
 description_zh: "给设计师用的“设计稿 → 能跑的原型”技能。把截图、Figma 链接、品牌规范、Claude Design 产出或一段文字意图交给它：先用几个设计师听得懂的问题确认页面、核心流程、用户和交接对象；再提取颜色、字体、字号、间距、圆角、阴影和组件状态，生成 CSS 变量和 JSON 两份 design tokens；然后搭出双击就能打开的可交互原型，页面能点、流程能走通，用假数据演示悬停、空状态、加载和报错；每个关键元素标注【确定】【示意】【待定】，按 Shift+A 就能看到；最后输出 HANDOFF.md（页面清单、流程图、组件、交互、待定问题）。可以直接交给开发，也可以生成 PLANNER_BRIEF.md，接着用 planner 规划下一步开发。自带检查脚本，交付前自动核对。"
@@ -14,4 +15,3 @@ examples_en:
   - "Make this Figma file into a prototype. I want to keep developing it myself"
 author: Tealun
 category: design
-version: 1.1.0
