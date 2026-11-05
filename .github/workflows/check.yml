@@ -19,6 +19,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: test dependency (WorkBuddy frontmatter must parse as YAML; pinned)
+        run: python3 -m pip install pyyaml==6.0.2
       - name: plugin manifest, skill, README, repository export, release audit, version bump since the last tag
         run: |
           previous=$(git describe --tags --abbrev=0 2>/dev/null || true)
