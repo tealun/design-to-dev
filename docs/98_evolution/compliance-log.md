@@ -24,3 +24,8 @@
 
 | 日期 | 周期 / 提交 | Gate | 适用 | 遵守 | 证据 | 记录方式 |
 |---|---|---|---|---|---|---|
+| 2026-11-05 | 1.4.0 发布规范与试跑修复 / 6d96ba6..204c2b5 | G1 | 是 | 部分 | 会话记录里 planner（05:20）、tasker（05:21）、auditor（05:45）、evolver（05:47）都经技能工具调用；CI 失败（run 41974316334，ModuleNotFoundError: yaml）和 kit 测试失败时没有调用 bugfixer | 自评 |
+| 2026-11-05 | 1.4.0 发布规范与试跑修复 / 6d96ba6..204c2b5 | G2 | 是 | 部分 | 发布规范的改动先有 docs/06_release-pipeline-plan.md 与 tasker 契约；试跑修复先写了修复前失败的测试（TrialFeedback 5 失败 1 错误、kit 1 失败）作为检查，但没有单独写出完成定义 | 自评 |
+| 2026-11-05 | 1.4.0 发布规范与试跑修复 / 6d96ba6..204c2b5 | G3 | 是 | 是 | 每次提交前贴出命令输出：65 个单元测试 OK、kit 与示例 all passed、build_plugin/build_suite/check_ledger ok、工作流步骤本地模拟的退出码 | 自评 |
+| 2026-11-05 | 1.4.0 发布规范与试跑修复 / 6d96ba6..204c2b5 | G4 | 是 | 否 | CI 缺 PyYAML 失败后直接改 check.yml（179499a），没有转入 bugfixer；回归由 CI 本身覆盖，没有单独写明 | 自评 |
+| 2026-11-05 | 1.4.0 发布规范与试跑修复 / 6d96ba6..204c2b5 | G5 | 是 | 是 | docs/06_release-pipeline-plan.md 交接列出本仓库 EV-20261103-005（写成 P-V4）和 dev-pdca 的 EV-20261102-001/003、EV-20261105-002/003 | 自评 |

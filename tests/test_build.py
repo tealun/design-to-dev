@@ -232,5 +232,32 @@ class WorkBuddyPackage(RepoCopy):
         self.assertTrue(any("examples_en has 4" in e for e in self.build()[0]))
 
 
+class ReleaseGatesInSync(unittest.TestCase):
+    """Both tag workflows publish to users, so plugin-branch.yml runs every gate release.yml runs (audit 99_04 A-01)."""
+
+    GATES = ("build_suite.py --check", "check_ledger.py", "unittest discover", "check_output.py", "build_plugin.py --check --tag")
+
+    @staticmethod
+    def missing(plugin_branch: str, release: str) -> list[str]:
+        return [g for g in ReleaseGatesInSync.GATES if g in release and g not in plugin_branch]
+
+    def read(self, name: str) -> str:
+        return (REPO / ".github" / "workflows" / name).read_text(encoding="utf-8")
+
+    def test_plugin_branch_has_every_release_gate(self) -> None:
+        release = self.read("release.yml")
+        self.assertEqual([g for g in self.GATES if g not in release], [], "release.yml lost a gate")
+        self.assertEqual(self.missing(self.read("plugin-branch.yml"), release), [])
+
+    def test_a_dropped_gate_is_reported(self) -> None:
+        weakened = self.read("plugin-branch.yml").replace("python3 -m unittest discover -s tests", "true")
+        self.assertEqual(self.missing(weakened, self.read("release.yml")), ["unittest discover"])
+
+    def test_manual_run_publishes_only_a_released_tag(self) -> None:
+        text = self.read("plugin-branch.yml")
+        self.assertIn('git checkout --quiet "refs/tags/v$version"', text)
+        self.assertIn("is not released yet", text)
+
+
 if __name__ == "__main__":
     unittest.main()
