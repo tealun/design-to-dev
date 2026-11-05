@@ -5,7 +5,6 @@ license: MIT
 compatibility: "Needs file read/write. Reading images needs a vision-capable model; Figma links need a Figma MCP server or exported screenshots. The prototype needs only a browser; check_output.py needs Python 3."
 metadata:
   author: Tealun
-  version: "1.3.1"
 ---
 
 # design-to-dev
@@ -66,7 +65,7 @@ Build tokens for color, typography (family, size scale, weight, line height), sp
 
 ### 3. Build the clickable prototype
 
-Copy the five prototype templates (`index.html`, `styles.css`, `proto-kit.js`, `data.js`, `pages.js`) into `prototype/`. They are a neutral, refined-minimal starting point, not the look: restyle `styles.css` for the VI, mockups or the locked direction (faces, weights, radius, borders, density, atmosphere, page-load sequence), so no two products come out looking the same. Write `data.js` (fake data) and `pages.js` (one entry per page). When the copy is final, bundle the chosen faces with `python3 <skill-dir>/scripts/fetch_fonts.py <output>/prototype "Display Face:700" "Body Face:400,500"` (all families in one call; re-run after copy changes). Without network, keep the system fallback and record the fonts as TBD. Requirements:
+Copy the five prototype templates (`index.html`, `styles.css`, `proto-kit.js`, `data.js`, `pages.js`) into `prototype/`. They are a neutral, refined-minimal starting point, not the look: restyle `styles.css` for the VI, mockups or the locked direction (faces, weights, radius, borders, density, atmosphere, page-load sequence), so no two products come out looking the same. Write `data.js` (fake data) and `pages.js` (one entry per page). When the copy is final, bundle the chosen faces. This contacts Google Fonts and, unless `--latin` is used, sends the set of characters used in the prototype (not the copy in order); tell the designer this in one sentence and run it only after they agree. If they decline, keep the system fallback and record the fonts as TBD. Command: `python3 <skill-dir>/scripts/fetch_fonts.py <output>/prototype "Display Face:700" "Body Face:400,500"` (all families in one call; re-run after copy changes). Without network, keep the system fallback and record the fonts as TBD. Requirements:
 
 - Every page in scope exists and every step of the core flow is clickable from the first page. If the flow ends on a page that was not designed (after sign-in, after checkout), add a minimal stub page marked TBD instead of inventing a design.
 - Links to pages outside the scope get `data-out`: the kit shows a “not in this prototype” toast. List them as open questions.

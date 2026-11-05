@@ -334,20 +334,16 @@ class ReleaseAuditGate(unittest.TestCase):
 
     def setUp(self) -> None:
         import importlib.util
-        spec = importlib.util.spec_from_file_location("build", REPO / "scripts" / "build.py")
+        spec = importlib.util.spec_from_file_location("build_plugin", REPO / "scripts" / "build_plugin.py")
         self.build = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(self.build)
 
-    def test_current_version_has_a_report(self) -> None:
-        errors: list[str] = []
-        self.build.check_release_audit("1.3.1", REPO / "docs" / "99_audits", errors)
-        self.assertEqual(errors, [])
+    def test_audited_minor_version_passes(self) -> None:
+        self.assertEqual(self.build.release_audit("1.3.1", REPO), [])
 
     def test_unaudited_minor_version_fails(self) -> None:
-        errors: list[str] = []
-        self.build.check_release_audit("1.4.0", REPO / "docs" / "99_audits", errors)
-        self.assertTrue(errors and "1.4" in errors[0], errors)
-
+        errors = self.build.release_audit("1.9.0", REPO)
+        self.assertTrue(errors and "1.9" in errors[0], errors)
 
 if __name__ == "__main__":
     unittest.main()

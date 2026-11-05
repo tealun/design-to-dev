@@ -1,6 +1,18 @@
 # Changelog
 
-## 1.3.1 — 2026-11-03
+## design-to-dev 1.4.0 — 2026-11-05
+
+发布方式照搬 tealun-dev-pdca（规划见 `docs/06_release-pipeline-plan.md`）：
+
+- `.claude-plugin/plugin.json` 成为唯一的版本来源；SKILL.md、`workbuddy.yaml` 不再写版本，WorkBuddy 包打包时注入。
+- 删除仓库内的 `marketplace.json` 和提交的 `design-to-dev.zip`。插件改由 tealun 市场（`tealun/tealun-plugins`）提供，市场跟踪只由 CI 写入的 `plugin` 分支。
+- 新增 `scripts/build_plugin.py`（插件清单、技能、README、仓库导出一致性、发布审计门禁、升版本检查、打包）、`scripts/build_suite.py`（WorkBuddy 全部已知规则与打包）、`scripts/publish_plugin_branch.sh`、`scripts/check_ledger.py`；新增 `release.yml`、`plugin-branch.yml`，`check.yml` 每次推送都校验。
+- 新增 `docs/claude-directory-rules.md`、`docs/workbuddy-rules.md`：两个平台的全部已知规则，每条对应本地检查或写明不检查的原因。
+- `.gitattributes` 设为 `* -text`；新增 `PRIVACY.md`、图标、`docs/98_evolution/compliance-log.md`。
+- 技能：运行 `fetch_fonts.py` 前要先告诉设计师它会把原型用字的集合发给 Google Fonts，同意后才运行；不同意就用系统字体并记为【待定】。
+- README 去掉下载后直接执行的命令，安装改为 tealun 市场或从 Release 下载。
+
+## design-to-dev 1.3.1 — 2026-11-03
 
 修复发布前审计 `99_03` 的全部问题（每项先写回归测试，修复前失败、修复后通过）：
 
@@ -11,7 +23,7 @@
 - 文档与数值：token 参考表头（R-8）、动效时长与缓动的分工（C1）、阴影预设（C2）、Readlog 标题 32px（C5）、方向措辞（C6）、触发描述不再匹配“在现有代码库里实现设计”（F-16）。
 - Readlog 的基础样式此前没有同步模板，HANDOFF 写的入场序列实际不存在：已同步，并新增测试要求示例与模板一致、浏览器中入场动画确实运行。
 
-## 1.3.0 — 2026-11-03
+## design-to-dev 1.3.0 — 2026-11-03
 
 融合 frontend-design 技能（作者 zxh）的设计方法（规划见 `docs/05_frontend-design-fusion.md`）：
 
@@ -23,7 +35,7 @@
 - Readlog 按新方法重做：打包 Noto Serif SC / Noto Sans SC，细线代替卡片，书本式封面，页边式 64px 天数，纸张颗粒，入场序列；同时修正审计 R-4、R-5、R-7、R-9、R-10、R-11。
 - 实测登录页打包原稿字体 Geist 后，各区块与原稿误差 0–2px。
 
-## 1.2.0 — 2026-11-03
+## design-to-dev 1.2.0 — 2026-11-03
 
 视觉质量（用户反馈：示例与模板“太丑、没有美感”；规划见 `docs/03_visual-quality-plan.md`）：
 
@@ -35,7 +47,7 @@
 - `check_output.py` 不再把注释、规格说明、锚点和选择器里的 `#abc` 当成颜色（审计 F-06）；token 参考表与模板命名对齐（F-09）、模板补齐状态色（F-10）、`{{LANG}}`（F-11）、“标注”复选框措辞（F-12）、HANDOFF 对比度与视觉自查位置（F-13）、定义 `<skill-dir>`（F-14）、只复制 5 个原型文件（F-15）。
 - README 增加示例预览图。
 
-## 1.1.1 — 2026-11-02
+## design-to-dev 1.1.1 — 2026-11-02
 
 修复发布前审计（`docs/99_audits/99_01_release_audit_v1.1.0.md`）的 4 个 P1，每项附回归测试，测试进入 CI：
 
@@ -45,7 +57,7 @@
 - F-04 proto-kit：本地保存的数据带上 `data.js` 指纹，改了假数据后刷新即生效，不再被旧数据覆盖。
 - 新增 `tests/`：脚本单元测试与 proto-kit 浏览器测试；CI 运行两者。
 
-## 1.1.0 — 2026-11-02
+## design-to-dev 1.1.0 — 2026-11-02
 
 用一张真实的公开登录页截图实测后迭代（记录见 `docs/02_field-test.md`）：
 
@@ -55,7 +67,7 @@
 - 登录、支付类流程只用虚构演示账号，写在 HANDOFF 第 0 节，原型不向网络发送任何输入。
 - 从图片测量的字重、字号、间距在元素标注里也只能是【示意】；复制模板后要按设计调整基础组件，并把原型截图与原图并排对比。
 
-## 1.0.0 — 2026-11-02
+## design-to-dev 1.0.0 — 2026-11-02
 
 - 首个版本。六步工作流：理解意图（一轮最多五个问题 + 理解卡）→ 提取 design tokens（CSS 变量 + W3C JSON，每项带等级与来源）→ 搭建可交互原型（纯 HTML/CSS/JS，双击打开，假数据，默认/空/加载/报错状态，模拟请求失败）→ 标注【确定】【示意】【待定】（Shift+A 显示）→ 输出 HANDOFF.md → 两种收尾模式（A 交给开发，B 生成 PLANNER_BRIEF.md 衔接 planner）。
 - 自带脚本：`tokens_json.py` 从 tokens.css 生成 tokens.json；`check_output.py` 交付前校验产出（两份 tokens 一致、页面与文档一致、标注合法、无原始色值、无远程脚本等）。

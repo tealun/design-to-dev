@@ -1,6 +1,6 @@
 # design-to-dev
 
-[中文](README.md) | English
+[中文](https://github.com/tealun/design-to-dev/blob/main/README.md) | English
 
 Turn a design or a product idea into a **prototype that runs**, and hand it off together with the design rules and a handoff document.
 
@@ -39,31 +39,30 @@ Before handoff the skill runs its bundled checker: both token files match, pages
 
 ## Install
 
-### Claude Code (plugin marketplace)
+### Claude Code (tealun plugin marketplace)
 
 ```text
-/plugin marketplace add tealun/design-to-dev
-/plugin install design-to-dev@design-to-dev
+/plugin marketplace add tealun/tealun-plugins
+/plugin install design-to-dev@tealun
 ```
 
-### Tools that support the Agent Skills standard (Claude Code, Codex, Cursor, …)
+Update with `/plugin marketplace update tealun`.
 
-```bash
-npx skills add tealun/design-to-dev
-```
+### claude.ai
 
-Or copy the skill folder to where your tool reads skills:
+Download `design-to-dev-<version>.zip` from [Releases](https://github.com/tealun/design-to-dev/releases/latest), then upload it under Customize > Plugins > Add > Upload plugin.
 
-```bash
-git clone https://github.com/tealun/design-to-dev.git
-cp -r design-to-dev/skills/design-to-dev ~/.claude/skills/
-```
+### WorkBuddy
 
-For Codex and other tools that read `~/.agents/skills/`, use that folder instead.
+Download `design-to-dev-workbuddy-<version>.zip` from [Releases](https://github.com/tealun/design-to-dev/releases/latest) and choose it in WorkBuddy's skill upload. If the platform needs `SKILL.md` at the zip root, use the `-flat.zip` from the same page.
 
-### WorkBuddy and other platforms that take a skill package
+### Other tools that support the Agent Skills standard (Codex, Cursor, …)
 
-Download [`design-to-dev.zip`](design-to-dev.zip) from the repository root and upload it. If the platform needs `SKILL.md` at the zip root, run `python3 scripts/build.py` and upload `dist/design-to-dev-<version>-flat.zip`.
+Download `design-to-dev-<version>.zip` from [Releases](https://github.com/tealun/design-to-dev/releases/latest), unzip it, and put its `skills/design-to-dev` folder where your tool reads skills (for example `~/.claude/skills/` or `~/.agents/skills/`).
+
+## Privacy
+
+The skill collects nothing. The only optional network use is font download: `fetch_fonts.py` sends the set of characters used in the prototype to Google Fonts and gets back font files with just those characters; Claude asks you first and you can decline. See [PRIVACY.md](https://github.com/tealun/design-to-dev/blob/main/PRIVACY.md).
 
 ## Examples
 
@@ -85,17 +84,19 @@ Reading Figma links needs a Figma MCP server connected to your agent; otherwise 
 
 ## Full example
 
-[`examples/readlog/`](examples/readlog/) runs the whole flow on a small reading-tracker product: a text brief and a one-page brand guide go in; a 3-page prototype, 42 tokens, a handoff document and a planner brief come out. Open [`examples/readlog/output/prototype/index.html`](examples/readlog/output/prototype/index.html) to try it.
+[`examples/readlog/`](https://github.com/tealun/design-to-dev/tree/main/examples/readlog) runs the whole flow on a small reading-tracker product: a text brief and a one-page brand guide go in; a 3-page prototype (with bundled fonts, works offline), 82 tokens, a handoff document and a planner brief come out.
 
 ## Repository layout
 
 ```text
 skills/design-to-dev/   the skill: SKILL.md, references/, templates/, scripts/
 examples/readlog/       full example
-docs/                   plan and field-test notes
-scripts/build.py        platform checks and packaging
-design-to-dev.zip       WorkBuddy upload package (CI keeps it in sync)
+docs/                   plans, platform rule tables, field tests, audits, evolution ledger
+scripts/                local checks and packaging (build_plugin.py, build_suite.py), plugin branch publishing
+tests/                  script unit tests and browser tests
 ```
+
+Packages are not committed: pushing a `v<version>` tag makes CI build them and attach them to the Release; the Claude plugin directory tracks the `plugin` branch, which only CI writes.
 
 ## Credits
 

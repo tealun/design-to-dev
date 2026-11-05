@@ -1,6 +1,6 @@
 # design-to-dev
 
-中文 | [English](README.en.md)
+中文 | [English](https://github.com/tealun/design-to-dev/blob/main/README.en.md)
 
 把设计稿或产品想法，变成一个**能跑起来的原型**，再连同设计规范和交接文档一起交出去。
 
@@ -39,31 +39,30 @@ design-to-dev 是一个 Agent 技能，给懂设计、不太懂代码的人用�
 
 ## 安装
 
-### Claude Code（插件市场）
+### Claude Code（tealun 插件市场）
 
 ```text
-/plugin marketplace add tealun/design-to-dev
-/plugin install design-to-dev@design-to-dev
+/plugin marketplace add tealun/tealun-plugins
+/plugin install design-to-dev@tealun
 ```
 
-### 支持 Agent Skills 标准的工具（Claude Code、Codex、Cursor 等）
+更新：`/plugin marketplace update tealun`。
 
-```bash
-npx skills add tealun/design-to-dev
-```
+### claude.ai
 
-或者手动复制技能目录到你的工具读取技能的位置：
+在 [Releases](https://github.com/tealun/design-to-dev/releases/latest) 下载 `design-to-dev-<版本>.zip`，然后在 claude.ai 的 Customize > Plugins > Add > Upload plugin 上传。
 
-```bash
-git clone https://github.com/tealun/design-to-dev.git
-cp -r design-to-dev/skills/design-to-dev ~/.claude/skills/
-```
+### WorkBuddy
 
-Codex 等读取 `~/.agents/skills/` 的工具，把目标目录换成 `~/.agents/skills/`。
+在 [Releases](https://github.com/tealun/design-to-dev/releases/latest) 下载 `design-to-dev-workbuddy-<版本>.zip`，在 WorkBuddy 的技能上传入口选择它。平台要求 `SKILL.md` 位于压缩包根目录时，改用同一页面的 `-flat.zip`。
 
-### WorkBuddy 等上传技能包的平台
+### 其他支持 Agent Skills 标准的工具（Codex、Cursor 等）
 
-下载仓库根目录的 [`design-to-dev.zip`](design-to-dev.zip)，在平台的技能上传入口选择它。平台要求 `SKILL.md` 位于压缩包根目录时，运行 `python3 scripts/build.py`，上传 `dist/design-to-dev-<版本>-flat.zip`。
+在 [Releases](https://github.com/tealun/design-to-dev/releases/latest) 下载 `design-to-dev-<版本>.zip` 并解压，把其中的 `skills/design-to-dev` 文件夹放进你的工具读取技能的位置（例如 `~/.claude/skills/` 或 `~/.agents/skills/`）。
+
+## 隐私
+
+技能不收集任何数据。唯一可选的联网是下载字体：`fetch_fonts.py` 会把原型里用到的字符集合发给 Google Fonts，换回只含这些字的字体文件；运行前 Claude 会先问你，你可以拒绝。详见 [PRIVACY.md](https://github.com/tealun/design-to-dev/blob/main/PRIVACY.md)。
 
 ## 使用示例
 
@@ -85,17 +84,19 @@ Codex 等读取 `~/.agents/skills/` 的工具，把目标目录换成 `~/.agents
 
 ## 完整示例
 
-[`examples/readlog/`](examples/readlog/) 用一个读书打卡小产品跑通了全流程：输入是一段文字意图和一页品牌规范，产出是 3 个页面的原型、42 个 tokens、交接文档和给 planner 的规划输入。双击 [`examples/readlog/output/prototype/index.html`](examples/readlog/output/prototype/index.html) 即可体验。
+[`examples/readlog/`](https://github.com/tealun/design-to-dev/tree/main/examples/readlog) 用一个读书打卡小产品跑通了全流程：输入是一段文字意图和一页品牌规范，产出是 3 个页面的原型（打包了真实字体，离线可用）、82 个 tokens、交接文档和给 planner 的规划输入。
 
 ## 仓库结构
 
 ```text
 skills/design-to-dev/   技能本体：SKILL.md、references/、templates/、scripts/
 examples/readlog/       完整示例
-docs/                   规划与实测记录
-scripts/build.py        平台规则校验与打包
-design-to-dev.zip       WorkBuddy 上传包（CI 校验与源码一致）
+docs/                   规划、平台规则对照表、实测记录、审计报告、演进台账
+scripts/                本地校验与打包（build_plugin.py、build_suite.py）、plugin 分支发布
+tests/                  脚本单元测试与浏览器测试
 ```
+
+安装包不提交进仓库：推送 `v<版本>` tag 后，由 CI 构建并附在 Release 上；Claude 插件目录跟踪只由 CI 写入的 `plugin` 分支。
 
 ## 致谢
 

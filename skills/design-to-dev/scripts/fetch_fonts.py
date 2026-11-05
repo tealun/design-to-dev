@@ -6,7 +6,7 @@ Usage:
     python3 fetch_fonts.py <output>/prototype "Geist:400,500,600" --latin
 
 Each argument is "Family:weights" as named on Google Fonts (open licenses: OFL / Apache).
-By default the font is subset to the characters actually used in the prototype's .html/.js files
+By default the font is subset to the characters actually used in the prototype's .html/.js/.css files
 (Google Fonts `text=` subsetting), plus ASCII, which keeps Chinese and Japanese fonts small.
 --latin downloads the full Latin subset instead (for typed input in Latin scripts).
 
@@ -16,6 +16,13 @@ index.html loads fonts/fonts.css; tokens name the families with system fallbacks
 Without network access the script exits with an error: keep the system fallback and record the
 font as TBD in HANDOFF. Re-run after copy changes, because new characters are not in the subset.
 Python 3 standard library only; honours HTTPS_PROXY and SSL_CERT_FILE.
+
+Network and data: this is the only script in the skill that uses the network. It sends requests
+to fonts.googleapis.com and fonts.gstatic.com only. Without --latin, the request includes the
+characters used in the prototype's .html, .js and .css files (deduplicated and sorted, as the
+`text=` parameter), so Google receives the set of characters, not the copy in order. With --latin
+no prototype text is sent. Run it only after the designer has agreed (SKILL.md step 3).
+Nothing is stored or sent anywhere else.
 """
 from __future__ import annotations
 
