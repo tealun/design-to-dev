@@ -259,5 +259,15 @@ class ReleaseGatesInSync(unittest.TestCase):
         self.assertIn("is not released yet", text)
 
 
+class ReleaseFromWebsite(unittest.TestCase):
+    """A release published on the GitHub website already exists when release.yml runs; it must be filled, not recreated."""
+
+    def test_existing_release_gets_the_packages(self) -> None:
+        text = (REPO / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
+        self.assertIn('gh release view "$GITHUB_REF_NAME"', text)
+        self.assertIn('gh release upload "$GITHUB_REF_NAME" "${assets[@]}" --clobber', text)
+        self.assertIn("gh release create", text)
+
+
 if __name__ == "__main__":
     unittest.main()
