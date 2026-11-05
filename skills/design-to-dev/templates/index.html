@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="{{LANG}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{PRODUCT_NAME}}</title>
+  <!-- Design rules first: every style below reads these variables. -->
+  <link rel="stylesheet" href="../design-tokens/tokens.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main id="app" class="app"></main>
+  <noscript>This prototype needs JavaScript.</noscript>
+  <!-- Order matters: fake data, the kit, then the pages. No server or build step needed. -->
+  <script src="data.js"></script>
+  <script src="proto-kit.js"></script>
+  <script src="pages.js"></script>
+</body>
+</html>

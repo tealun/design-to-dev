@@ -1,0 +1,28 @@
+{
+  "name": "design-to-dev",
+  "displayName": "Design to Dev",
+  "version": "1.4.0",
+  "description": "For designers: screenshots, Figma links, brand guides or a text idea become a clickable prototype (plain HTML/CSS/JS, fake data, key states, bundled fonts), design tokens (CSS + W3C JSON) and HANDOFF.md, with every item marked Fixed, Indicative or TBD, and a visual direction locked before styling.",
+  "author": {
+    "name": "Tealun",
+    "url": "https://github.com/tealun"
+  },
+  "homepage": "https://github.com/tealun/design-to-dev",
+  "repository": "https://github.com/tealun/design-to-dev",
+  "documentationUrl": "https://github.com/tealun/design-to-dev#readme",
+  "supportUrl": "https://github.com/tealun/design-to-dev/issues",
+  "privacyPolicyUrl": "https://github.com/tealun/design-to-dev/blob/main/PRIVACY.md",
+  "license": "MIT",
+  "keywords": [
+    "design",
+    "prototype",
+    "design-tokens",
+    "handoff",
+    "figma",
+    "designer"
+  ],
+  "icon": "./assets/design-to-dev-icon.png",
+  "skills": [
+    "./skills/design-to-dev"
+  ]
+}
